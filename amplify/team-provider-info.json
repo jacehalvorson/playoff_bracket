@@ -1,0 +1,34 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-playoffbracket-dev-c321e-authRole",
+      "UnauthRoleArn": "arn:aws:iam::977933747533:role/amplify-playoffbracket-dev-c321e-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::977933747533:role/amplify-playoffbracket-dev-c321e-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-playoffbracket-dev-c321e-deployment",
+      "UnauthRoleName": "amplify-playoffbracket-dev-c321e-unauthRole",
+      "StackName": "amplify-playoffbracket-dev-c321e",
+      "StackId": "arn:aws:cloudformation:us-east-2:977933747533:stack/amplify-playoffbracket-dev-c321e/dff98a40-c167-11ef-8d5d-02e2fbb8bb27",
+      "AmplifyAppId": "d2ip2yjs34zc9b"
+    },
+    "categories": {
+      "function": {
+        "playoffteams": {
+          "deploymentBucketName": "amplify-playoffbracket-dev-c321e-deployment",
+          "s3Key": "amplify-builds/playoffteams-4e50704e5a61454c524f-build.zip"
+        },
+        "getPlayoffBrackets": {
+          "deploymentBucketName": "amplify-playoffbracket-dev-c321e-deployment",
+          "s3Key": "amplify-builds/getPlayoffBrackets-6f793044585151747a69-build.zip"
+        }
+      },
+      "storage": {
+        "playoffteams": {},
+        "playoffbrackets": {}
+      },
+      "api": {
+        "apiplayoffbrackets": {}
+      }
+    }
+  }
+}

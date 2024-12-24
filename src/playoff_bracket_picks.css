@@ -1,0 +1,239 @@
+#playoff-bracket-picks {
+   position: relative;
+   margin-top: 1em;
+   margin-bottom: 1em;
+   width: calc( 100vw - ( 100vw - 100% ) );
+
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   flex-direction: column;
+   gap: 1em;
+}
+
+#playoff-bracket-wildcard-games {
+   display: flex;
+   justify-content: space-around;
+   gap: 4em;
+}
+
+#playoff-bracket-wildcard-games > .playoff-bracket-afc,
+#playoff-bracket-wildcard-games > .playoff-bracket-nfc {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+#playoff-bracket-divisional-games {
+   display: flex;
+   align-items: flex-start;
+   justify-content: space-around;
+   gap: 19em;
+}
+
+#playoff-bracket-divisional-games > .playoff-bracket-afc,
+#playoff-bracket-divisional-games > .playoff-bracket-nfc {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+#playoff-bracket-championships {
+   display: flex;
+   align-items: flex-start;
+   justify-content: space-around;
+   gap: 33em;
+}
+
+#playoff-bracket-championships > .playoff-bracket-afc,
+#playoff-bracket-championships > .playoff-bracket-nfc {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+#playoff-bracket-super-bowl {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+.playoff-bracket-game {
+   height: 10em;
+   width: 14em;
+   border-radius: 1em;
+   margin: 0.3em;
+
+   background: black;
+   color: black;
+
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: space-evenly;
+}
+
+.playoff-bracket-team {
+   height: 45%;
+   width: 96%;
+}
+
+.playoff-bracket-team > .image-container {
+   height: 100%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+.playoff-bracket-team > .image-container > img {
+   width: 4em;
+   margin-right: 1em;
+   margin-left: -0.5em;
+}
+
+.playoff-bracket-team > h3 {
+   color: grey;
+   margin-right: 0.5em;
+}
+
+#super-bowl {
+   font-size: 1.4em;
+   height: 14em;
+   width: 18em;
+   border-radius: 1em;
+
+   margin: 3em;
+   margin-top: -9em;
+
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: space-evenly;
+}
+
+#super-bowl > .playoff-bracket-game {
+   flex-direction: row;
+   width: 18em;
+}
+
+#super-bowl > .playoff-bracket-game > .playoff-bracket-team {
+   height: 96%;
+   width: 48%;
+
+   flex-direction: column;
+}
+
+#super-bowl > .playoff-bracket-game > .playoff-bracket-team > .image-container {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   width: 100%;
+   height: 100%;
+}
+
+#super-bowl > .playoff-bracket-game > .playoff-bracket-team > .image-container > img {
+   width: 6em;
+   margin: 0;
+}
+
+#super-bowl > .playoff-bracket-game > .playoff-bracket-team > h3 {
+   display: none;
+}
+
+#tiebreaker-input {
+   width: 6em;
+   text-align: center;
+}
+
+/* Mobile Styles */
+@media screen and ( max-width: 768px ) {
+   #playoff-bracket-picks {
+      gap: 2em;
+   }
+
+   .playoff-bracket-team > .image-container > img {
+      margin-left: -1em;
+   }
+
+   #playoff-bracket-wildcard-games {
+      border: 1px solid white;
+      border-radius: 1em;
+      padding: 1em;
+      width: 93%;
+
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+   }
+
+   #playoff-bracket-wildcard-games > h2 {
+      font-size: 2.5em;
+      margin-bottom: 0.2em;
+   }
+
+   #playoff-bracket-divisional-games {
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      gap: 2em;
+   }
+
+   #playoff-bracket-divisional-games > .playoff-bracket-afc,
+   #playoff-bracket-divisional-games > .playoff-bracket-nfc {
+      border: 1px solid white;
+      border-radius: 1em;
+      padding: 1em;
+      flex-direction: column;
+   }
+
+   #playoff-bracket-divisional-games > .playoff-bracket-afc > h2,
+   #playoff-bracket-divisional-games > .playoff-bracket-nfc > h2 {
+      font-size: 1.7em;
+      margin-bottom: 0.2em;
+   }
+
+   #playoff-bracket-championships {
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      gap: 2em;
+   }
+
+   #playoff-bracket-championships > .playoff-bracket-afc,
+   #playoff-bracket-championships > .playoff-bracket-nfc {
+      border: 1px solid white;
+      border-radius: 1em;
+      padding: 1em;
+      flex-direction: column;
+   }
+   
+   #playoff-bracket-championships > .playoff-bracket-afc > h2,
+   #playoff-bracket-championships > .playoff-bracket-nfc > h2 {
+      font-size: 1.7em;
+      margin-bottom: 0.2em;
+   }
+
+   #super-bowl {
+      margin-top: 1em;
+      margin-bottom: 6em;
+      font-size: 2.5em;
+   }
+
+   .playoff-bracket-game {
+      font-size: 1.4em;
+   }
+   #super-bowl > .playoff-bracket-game {
+      font-size: 1em;
+   }
+}
+
+/* Desktop Styles */
+@media screen and ( min-width: 769px ) {
+   #playoff-bracket-wildcard-games > h2,
+   #playoff-bracket-divisional-games > .playoff-bracket-afc > h2,
+   #playoff-bracket-divisional-games > .playoff-bracket-nfc > h2,
+   #playoff-bracket-championships > .playoff-bracket-afc > h2,
+   #playoff-bracket-championships > .playoff-bracket-nfc > h2 {
+      display: none;
+   }
+}

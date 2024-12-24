@@ -1,0 +1,10 @@
+{
+  "resourceName": "playoffteams",
+  "tableName": "playoffteams",
+  "partitionKey": {
+    "fieldName": "year",
+    "fieldType": "number"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}

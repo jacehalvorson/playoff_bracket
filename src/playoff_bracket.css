@@ -1,0 +1,68 @@
+main#playoff-bracket {
+   position: relative;
+   z-index: 1;
+   min-height: 100vh;
+   font-size: clamp( 8px, 1vw, 16px );
+   background: rgb(20,20,20);
+   background: radial-gradient(circle at top, rgba(40,40,40,1) 0%, rgba(30,30,30,1) 25%, rgba(20,20,20,1) 50%, rgba(10,10,10,1) 75%, rgba(0,0,0,1) 100%);
+
+   display: flex;
+   flex-direction: column;
+   overflow-x: hidden;
+
+   color: white;
+}
+
+#playoff-bracket > h1 {
+   font-size: 3em;
+   margin: 1em;
+   text-align: center;
+}
+
+#focus-selection-group {
+   width: 100vw;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+}
+
+#playoff-bracket-content {
+   position: relative;
+   margin-top: 1em;
+   width: 200vw;
+
+   display: flex;
+   align-items: start;
+   justify-content: space-evenly;
+
+   transition: margin-left 400ms ease-in-out;
+}
+
+#playoff-bracket-background-picture {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100vw;
+   height: 100vh;
+   z-index: -1;
+   opacity: 0.1;
+
+   background-image: url("/public/images/playoff-bracket-background.jpg");
+   background-size: cover;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+   main#playoff-bracket {
+      font-size: clamp( 3px, 1.5vw, 12px );
+   }
+
+   #playoff-bracket > h1 {
+      font-size: 4em;
+   }
+   
+   #focus-selection-group {
+      font-size: 2em;
+      margin-bottom: 0.5em;
+   }
+}

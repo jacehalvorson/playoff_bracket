@@ -1,0 +1,110 @@
+{
+  "api": {
+    "apiplayoffbrackets": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "getPlayoffBrackets"
+        },
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "playoffteams"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    }
+  },
+  "function": {
+    "getPlayoffBrackets": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributeEnvMap": {
+            "Arn": "TABLE_ARN",
+            "Name": "TABLE_NAME"
+          },
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "storage",
+          "resourceName": "playoffbrackets"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "playoffteams": {
+      "build": true,
+      "dependsOn": [
+        {
+          "attributeEnvMap": {
+            "Arn": "TABLE_ARN",
+            "Name": "TABLE_NAME"
+          },
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "storage",
+          "resourceName": "playoffteams"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_getPlayoffBrackets_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "getPlayoffBrackets"
+        }
+      ]
+    },
+    "AMPLIFY_function_getPlayoffBrackets_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "getPlayoffBrackets"
+        }
+      ]
+    },
+    "AMPLIFY_function_playoffteams_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "playoffteams"
+        }
+      ]
+    },
+    "AMPLIFY_function_playoffteams_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "playoffteams"
+        }
+      ]
+    }
+  },
+  "storage": {
+    "playoffbrackets": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    },
+    "playoffteams": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    }
+  }
+}
