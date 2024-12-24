@@ -1,0 +1,78 @@
+main#playoff-bracket-entry {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    width: calc( 100vw - ( 100vw - 100% ) );
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+    main#playoff-bracket-entry > h1 {
+        margin-left: 0.5em;
+        margin-right: 0.5em;
+        margin-top: 2.5em;
+        padding: 0.5em;
+        text-align: center;
+        border: 1px solid white;
+        border-radius: 0.5em;
+    }
+
+    main#playoff-bracket-entry > h2 {
+        margin: 1em;
+        text-align: center;
+    }
+
+#red {
+    color: red;
+}
+#white {
+    color: white;
+}
+
+#back-button {
+    color: white;
+    fill: white;
+    cursor: pointer;
+    position: fixed;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    padding: 1em 1em;
+    margin: 1em 0;
+    width: 12em;
+    text-align: center;
+    border: 1px solid rgba( 255, 255, 255, 0 );
+    border-radius: 0.5em;
+    left: -0.3em;
+    justify-content: flex-start;
+    border-left-width: 0;
+    padding-right: 0;
+    transition: opacity 200ms ease-in-out, border-color 200ms ease-in-out, box-shadow 200ms ease-in-out;
+}
+
+@media screen and ( min-width: 769px ) {
+    #back-button:hover {
+        opacity: 1;
+        box-shadow: 0 0 10px rgba( 255, 255, 255, 0.5 );
+        border-color: rgba( 255, 255, 255, 0.5 );
+    }
+}
+
+#add-to-leaderboard {
+    margin: 1em;
+    padding: 0.5em 1em;
+    background-color: #0073e6; /* Button background color */
+    color: white;
+    border: none;
+    border-radius: 2em;
+    font-size: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.6);
+    transition: ease-in-out 0.1s background-color, ease-in-out 0.1s box-shadow;
+}
+
+    #add-to-leaderboard:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 1);
+        background-color: #0066cc;
+    }

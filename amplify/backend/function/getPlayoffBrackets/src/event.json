@@ -1,0 +1,11 @@
+{
+  "httpMethod": "GET",
+  "path": "/brackets",
+  "queryStringParameters": {
+    "limit": "10"
+  },
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": "{\"key\":\"2025dev\",\"player\":\"Dave\",\"bracket\":\"0000000000000\"}"
+}
