@@ -1,8 +1,8 @@
-import { Amplify } from "aws-amplify";
+import { fetchAPI, postAPI } from "./playoff_bracket_api.js";
 
 const apiName = "apiplayoffbrackets";
 
-export default async function submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted )
+export default async function submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group )
 {
    let brackets = [ ];
    let devices = [ ];
@@ -15,8 +15,8 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
 
    setSubmitStatus( "Adding bracket to leaderboard..." );
 
-   // Check if this player is already in the database
-   Amplify.API.get( apiName, "/?table=playoffBrackets2025" )
+   // Check if this player is already in this group
+   fetchAPI( apiName, `/brackets/${currentYear}${group}` )
    .then( response => {
       // First check if this device has been used in the past
       response.forEach( player =>
@@ -24,13 +24,13 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
          if ( ( player.devices && player.devices.includes( deviceId ) )  )
          {
             playerFound = true;
-            let cancel = window.confirm(`${player.name} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\n\
+            let confirm = window.confirm(`${player.player} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\n\
 Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\nTiebreaker: ${bracket.tiebreaker}`);
-            if (!cancel)
+            if (!confirm)
             {
                throw Error("Bracket not added to database");;
             }
-            name = player.name;
+            name = player.player;
             if ( player.brackets.find( entry => entry.picks === bracket.picks && entry.tiebreaker === bracket.tiebreaker ) )
             {
                throw Error("Bracket is already in database");
@@ -54,7 +54,7 @@ Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\n
          // Check if this player is already in the database (on a different device)
          response.forEach( player =>
          {
-            if ( player.name === name )
+            if ( player.player === name )
             {
                playerFound = true;
                let cancel = window.confirm(`${player.name} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\n\
@@ -76,18 +76,14 @@ Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\n
       }
 
       let bracketData = {
-         name: name,
+         key: "2025dev",
+         player: name,
          brackets: brackets,
          devices: devices
       };
    
       // Send POST request to database API with this data
-      Amplify.API.post( apiName, "/?table=playoffBrackets2025", {
-         headers: {
-            "Content-Type": "application/json"
-         },
-         body: bracketData
-      })
+      postAPI( apiName, "/brackets", bracketData )
       .then( response => {
          setSubmitStatus( "Success" );
          setNewBracketSubmitted( oldValue => !oldValue );

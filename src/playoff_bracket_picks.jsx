@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Amplify } from "aws-amplify";
 
 import { computeAllGames, emptyGames, nflTeamColors } from "./playoff_bracket_utils"
 import submitBracket from "./playoff_bracket_submit_bracket";
@@ -11,27 +10,6 @@ import TextField from '@mui/material/TextField';
 import { styled } from '@mui/material/styles';
 
 import "./playoff_bracket_picks.css";
-
-const apiName = "apiplayoffbrackets";
-
-// Temporarily use local teams instead of fetching from database
-const DISABLE_API_CALL = true;
-export const playoffTeams2025 = {
-   "N1": { name: "Vikings", seed: 1 },
-   "N2": { name: "49ers", seed: 2 },
-   "N3": { name: "Commanders", seed: 3 },
-   "N4": { name: "Saints", seed: 4 },
-   "N5": { name: "Packers", seed: 5 },
-   "N6": { name: "Lions", seed: 6 },
-   "N7": { name: "Bears", seed: 7 },
-   "A1": { name: "Ravens", seed: 1 },
-   "A2": { name: "Bills", seed: 2 },
-   "A3": { name: "Chiefs", seed: 3 },
-   "A4": { name: "Texans", seed: 4 },
-   "A5": { name: "Browns", seed: 5 },
-   "A6": { name: "Dolphins", seed: 6 },
-   "A7": { name: "Steelers", seed: 7 }
-}
 
 const TiebreakerInput = styled(TextField)({
    '& .MuiOutlinedInput-root': {
@@ -59,7 +37,6 @@ const TiebreakerInput = styled(TextField)({
 function PlayoffBracketPicks( props )
 {
    const [games, setGames] = useState( emptyGames );
-   const [playoffTeams, setPlayoffTeams] = useState( playoffTeams2025 );
    const [tiebreaker, setTiebreaker] = useState( 0 );
    const [submitStatus, setSubmitStatus] = useState( "Submit" );
 
@@ -68,6 +45,8 @@ function PlayoffBracketPicks( props )
    const picks = props.picks;
    const setPicks = props.setPicks;
    const setNewBracketSubmitted = props.setNewBracketSubmitted;
+   const playoffTeams = props.playoffTeams;
+   const group = props.group;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
    const updatePick = ( index, value ) =>
@@ -86,36 +65,6 @@ function PlayoffBracketPicks( props )
                      picks.substring(index + 1);
       setPicks( newPicks );
    }
-
-   // Update teams when the page loads
-   useEffect( ( ) => {
-      // If the teams are already loaded, save time by using those.
-      if ( DISABLE_API_CALL ) return;
-
-      // Retrieve the teams from the "playoffTeams" DynamoDB table using the API
-      Amplify.API.get( apiName, "/?table=playoffTeams" )
-      .then( response => {
-         var teams = {};
-
-         response.forEach( team => 
-         {
-            // Only take teams from this year
-            if ( team.year === currentYear )
-            {
-               teams[team.position] = {
-                  name: team.team,
-                  seed: Number( team.position[1] )
-               };
-            }
-         });
-      
-         setPlayoffTeams( teams );
-      })
-      .catch( err => {
-         console.log( "Error fetching teams from API and parsing" );
-         console.error( err );
-      })
-   }, [ currentYear ] );
 
    // Update all the Wild Card games when the playoff teams or picks change
    useEffect( ( ) => {
@@ -249,9 +198,9 @@ function PlayoffBracketPicks( props )
             variant="contained"
             style={{marginTop: "-3em"}}
             size="large"
-            onClick={() =>
+            onClick={ ( ) =>
             {
-               submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted );
+               submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group );
             }}
          >
             { ( submitStatus === "" ) ? "Submit" : submitStatus }

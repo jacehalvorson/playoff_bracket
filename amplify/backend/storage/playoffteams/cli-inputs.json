@@ -5,6 +5,10 @@
     "fieldName": "year",
     "fieldType": "number"
   },
+  "sortKey": {
+    "fieldName": "index",
+    "fieldType": "string"
+  },
   "gsi": [],
   "triggerFunctions": []
 }

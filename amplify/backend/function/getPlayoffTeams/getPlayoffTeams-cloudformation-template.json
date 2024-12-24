@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "{\"createdOn\":\"Windows\",\"createdBy\":\"Amplify\",\"createdWith\":\"12.13.1\",\"stackType\":\"function-Lambda\",\"metadata\":{\"whyContinueWithGen1\":\"I find the Gen 1 CLI easier to use\"}}",
+  "Description": "{\"createdOn\":\"Windows\",\"createdBy\":\"Amplify\",\"createdWith\":\"12.13.1\",\"stackType\":\"function-Lambda\",\"metadata\":{\"whyContinueWithGen1\":\"\"}}",
   "Parameters": {
     "CloudWatchRule": {
       "Type": "String",
@@ -55,12 +55,12 @@
         "FunctionName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "playoffteams",
+            "getPlayoffTeams",
             {
               "Fn::Join": [
                 "",
                 [
-                  "playoffteams",
+                  "getPlayoffTeams",
                   "-",
                   {
                     "Ref": "env"
@@ -97,12 +97,12 @@
         "RoleName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "playoffbracketLambdaRoleb956220d",
+            "playoffbracketLambdaRolebf076824",
             {
               "Fn::Join": [
                 "",
                 [
-                  "playoffbracketLambdaRoleb956220d",
+                  "playoffbracketLambdaRolebf076824",
                   "-",
                   {
                     "Ref": "env"

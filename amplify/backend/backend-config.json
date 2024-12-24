@@ -16,7 +16,7 @@
             "Arn"
           ],
           "category": "function",
-          "resourceName": "playoffteams"
+          "resourceName": "getPlayoffTeams"
         }
       ],
       "providerPlugin": "awscloudformation",
@@ -43,7 +43,7 @@
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
-    "playoffteams": {
+    "getPlayoffTeams": {
       "build": true,
       "dependsOn": [
         {
@@ -80,19 +80,19 @@
         }
       ]
     },
-    "AMPLIFY_function_playoffteams_deploymentBucketName": {
+    "AMPLIFY_function_getPlayoffTeams_deploymentBucketName": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "playoffteams"
+          "resourceName": "getPlayoffTeams"
         }
       ]
     },
-    "AMPLIFY_function_playoffteams_s3Key": {
+    "AMPLIFY_function_getPlayoffTeams_s3Key": {
       "usedBy": [
         {
           "category": "function",
-          "resourceName": "playoffteams"
+          "resourceName": "getPlayoffTeams"
         }
       ]
     }

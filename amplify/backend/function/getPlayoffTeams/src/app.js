@@ -20,11 +20,13 @@ if (process.env.ENV && process.env.ENV !== "NONE") {
   tableName = tableName + '-' + process.env.ENV;
 }
 
+// "index" takes the form "N1", "N2", etc. or "winners" or "gamesStarted"
+
 const userIdPresent = false; // TODO: update in case is required to use that definition
 const partitionKeyName = "year";
 const partitionKeyType = "N";
-const sortKeyName = "";
-const sortKeyType = "";
+const sortKeyName = "index";
+const sortKeyType = "S";
 const hasSortKey = sortKeyName !== "";
 const path = "/teams";
 const UNAUTH = 'UNAUTH';

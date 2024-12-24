@@ -1,7 +1,6 @@
-import React, { useState } from "react";
-import { Amplify } from "aws-amplify";
-import { CurrentYear } from "./YearUpdate.js";
-import submitGameComplete from "./payment_game_win";
+import { useState, useEffect } from "react";
+import { fetchAPI } from "./playoff_bracket_api.js";
+import submitGameComplete from "./payment_game_win.js";
 import { getOrCreateDeviceId } from "./playoff_bracket.jsx"
 import { computeAllGames } from "./playoff_bracket_utils"
 
@@ -9,26 +8,27 @@ import "./PaymentGameWin.css";
 
 const apiName = "apiplayoffbrackets";
 
+const currentYear = 2025;
+
 function PaymentGameWin( )
 {
-    const [submitGame, setSubmitGame] = useState("");
-    const [scores, setScores] = React.useState([]);
-    const [scoresStatus, setScoresStatus] = React.useState("Loading brackets...");
+    const [submitGame, setSubmitGame] = useState( "" );
+    const [scores, setScores] = useState( "0000000000000" );
+    const [scoresStatus, setScoresStatus] = useState( "Loading brackets..." );
 
     // Get the device ID which is common for a single person.
     const deviceId = getOrCreateDeviceId();
 
-    React.useEffect(() =>
+    useEffect(() =>
     {
-        // Instead of fetching for the current year, fetch for 2025 temporarily.
-        Amplify.API.get( apiName, "/?table=playoffBrackets" + CurrentYear() )
+        fetchAPI( apiName, `/teams/${currentYear}` )
             .then(response =>
             {
                 // Extract the winning bracket from the response
-                const winningEntry = response.find(entry => entry.name === "NFL_BRACKET");
+                const winningPicks = response.find(entry => entry.index === "winners").value;
 
                 // Set scores variable to display list of entries
-                setScores(winningEntry.picks);
+                setScores(winningPicks);
                 setScoresStatus("");
             })
             .catch(err =>
@@ -156,15 +156,15 @@ function PaymentGameWin( )
 
     return (
         <main id="playoff-bracket-entry">
-            <h2>{CurrentYear()} Playoff Bracket</h2>
+            <h2>{currentYear} Playoff Bracket</h2>
             <h2>Picks (NFL_BRACKET)</h2>
             <h4>---------AFC NFC AF NF A N S</h4>
             <div>Line 1 - <span id={spanColorA11}>2</span><span id={spanColorA12}>3</span><span id={spanColorA13}>4</span> <span id={spanColorN11}>2</span><span id={spanColorN12}>3</span><span id={spanColorN13}>4</span> <span id={spanColorA14}>1</span><span id={spanColorA15}>{AF1Second}</span> <span id={spanColorN14}>1</span><span id={spanColorN15}>{NF1Second}</span> <span id={spanColorA16}>H</span> <span id={spanColorN17}>H</span> A</div>
             <div>Line 2 - <span id={spanColorA21}>7</span><span id={spanColorA22}>6</span><span id={spanColorA23}>5</span> <span id={spanColorN21}>7</span><span id={spanColorN22}>6</span><span id={spanColorN23}>5</span> <span id={spanColorA24}>{AF1Last}</span><span id={spanColorA25}>{AF1Third}</span> <span id={spanColorN24}>{NF1Last}</span><span id={spanColorN25}>{NF1Third}</span> <span id={spanColorA26}>L</span> <span id={spanColorN27}>L</span> N</div>
-            <input type="text" id="newPicks" defaultValue={scores} />
+            <input type="text" id="newPicks" defaultValue={scores} key={scores} />
             <button
                 id="add-to-NFL-bracket"
-                onClick={() => { submitGameComplete(setSubmitGame, deviceId); }}
+                onClick={ ( ) => { submitGameComplete( setSubmitGame, deviceId ); }}
             >
                 Update NFL Bracket
             </button>

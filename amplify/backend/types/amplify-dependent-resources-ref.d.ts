@@ -14,7 +14,7 @@ export type AmplifyDependentResourcesAttributes = {
       "Name": "string",
       "Region": "string"
     },
-    "playoffteams": {
+    "getPlayoffTeams": {
       "Arn": "string",
       "LambdaExecutionRole": "string",
       "LambdaExecutionRoleArn": "string",
@@ -39,6 +39,8 @@ export type AmplifyDependentResourcesAttributes = {
       "PartitionKeyName": "string",
       "PartitionKeyType": "string",
       "Region": "string",
+      "SortKeyName": "string",
+      "SortKeyType": "string",
       "StreamArn": "string"
     }
   }

@@ -13,18 +13,18 @@
     },
     "categories": {
       "function": {
-        "playoffteams": {
-          "deploymentBucketName": "amplify-playoffbracket-dev-c321e-deployment",
-          "s3Key": "amplify-builds/playoffteams-4e50704e5a61454c524f-build.zip"
-        },
         "getPlayoffBrackets": {
           "deploymentBucketName": "amplify-playoffbracket-dev-c321e-deployment",
           "s3Key": "amplify-builds/getPlayoffBrackets-6f793044585151747a69-build.zip"
+        },
+        "getPlayoffTeams": {
+          "deploymentBucketName": "amplify-playoffbracket-dev-c321e-deployment",
+          "s3Key": "amplify-builds/getPlayoffTeams-5a50696755426e656d4e-build.zip"
         }
       },
       "storage": {
-        "playoffteams": {},
-        "playoffbrackets": {}
+        "playoffbrackets": {},
+        "playoffteams": {}
       },
       "api": {
         "apiplayoffbrackets": {}
