@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "paths": {
+    "/brackets": {
+      "name": "/brackets",
+      "lambdaFunction": "getPlayoffBrackets",
+      "permissions": {
+        "setting": "open"
+      }
+    },
+    "/teams": {
+      "name": "/teams",
+      "lambdaFunction": "getPlayoffTeams",
+      "permissions": {
+        "setting": "open"
+      }
+    }
+  }
+}

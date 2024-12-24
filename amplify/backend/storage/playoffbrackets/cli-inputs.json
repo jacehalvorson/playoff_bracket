@@ -1,0 +1,14 @@
+{
+  "resourceName": "playoffbrackets",
+  "tableName": "playoffbrackets",
+  "partitionKey": {
+    "fieldName": "key",
+    "fieldType": "string"
+  },
+  "sortKey": {
+    "fieldName": "player",
+    "fieldType": "string"
+  },
+  "gsi": [],
+  "triggerFunctions": []
+}
