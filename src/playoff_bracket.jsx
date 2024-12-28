@@ -10,6 +10,17 @@ import { useSearchParams } from 'react-router-dom';
 
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+const theme = createTheme({
+   palette: {
+      mode: "dark"
+   },
+});
 
 const LEADERBOARD_FOCUS = 0;
 const PICKS_FOCUS = 1;
@@ -17,6 +28,16 @@ const PICKS_FOCUS = 1;
 const apiName = 'apiplayoffbrackets';
 
 const currentYear = 2025;
+
+const groups = [
+   "dev",
+   "test",
+   "prod",
+   "asjhfiuskwbgf294uwfbicv7bgqubfaeibdvfvf7bvouqe3hfo8q3hoanc".substring(0, 20),
+   "asjhfiuskwbgf294uwfbicv7bgqubfaeibdvfvf7bvouqe3hfo8q3hoanc".substring(0, 20),
+   "asjhfiuskwbgf294uwfbicv7bgqubfaeibdvfvf7bvouqe3hfo8q3hoanc".substring(0, 20),
+   "asjhfiuskwbgf294uwfbicv7bgqubfaeibdvfvf7bvouqe3hfo8q3hoanc".substring(0, 20),
+];
 
 function getOrCreateDeviceId( ) 
 {
@@ -107,7 +128,7 @@ function PlayoffBracket( )
    const deviceId = getOrCreateDeviceId( );
 
    return (
-      <main id="playoff-bracket">
+      <main id="playoff-bracket"><ThemeProvider theme={theme}>
          <h1>{ currentYear } Playoff Bracket</h1>
 
          <div id="focus-selection-group">
@@ -115,7 +136,6 @@ function PlayoffBracket( )
                onChange={switchFocus}
                value={focus}
                exclusive
-               sx={{bgcolor: "white"}}
                aria-label="select-focus"
             >
                <ToggleButton
@@ -134,6 +154,25 @@ function PlayoffBracket( )
                </ToggleButton>
             </ToggleButtonGroup>
          </div>
+
+         <ThemeProvider theme={theme}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+               <FormControl id="group-selection" variant="outlined" sx={{ minWidth: 120 }} size="small">
+                  <InputLabel id="group-selection-input-label" style={{ color: "white" }}>Group</InputLabel>
+                  <Select
+                     id="group-selection-select"
+                     value={ groups.includes( group ) ? group : "" }
+                     label="Group"
+                     onChange={ ( event ) => setGroup( event.target.value ) }
+                     style={{ color: "white" }}
+                     autoWidth
+                  >
+                     <MenuItem value={""}> All </MenuItem>
+                     { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
+                  </Select>
+               </FormControl>
+            </div>
+         </ThemeProvider>
 
          <div id="playoff-bracket-content" style={{ marginLeft: `${ focus * -100 }vw` }}>
             <PlayoffBracketLeaderboard
@@ -157,7 +196,7 @@ function PlayoffBracket( )
          </div>
 
          <div id="playoff-bracket-background-picture" />
-      </main>
+      </ThemeProvider></main>
    );
 }
 

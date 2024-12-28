@@ -12,7 +12,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 const apiName = "apiplayoffbrackets";
 const currentYear = 2025;
 
-function PlayoffBracketLeaderboard(props)
+function PlayoffBracketLeaderboard( props )
 {
    const [ unprocessedBrackets, setUnprocessedBrackets ] = useState( [ ] );
    const [ brackets, setBrackets ] = useState( [ ] );

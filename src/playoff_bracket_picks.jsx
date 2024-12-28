@@ -7,32 +7,9 @@ import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import TextField from '@mui/material/TextField';
-import { styled } from '@mui/material/styles';
 
 import "./playoff_bracket_picks.css";
 
-const TiebreakerInput = styled(TextField)({
-   '& .MuiOutlinedInput-root': {
-      '& fieldset': {
-         borderColor: 'white',
-      },
-      '&:hover fieldset': {
-         borderColor: 'white',
-      },
-      '&.Mui-focused fieldset': {
-         borderColor: 'white',
-      },
-   },
-   '& label': {
-      color: 'white'
-   },
-   '& input': {
-      color: 'white'
-   },
-   '& label.Mui-focused': {
-     color: 'white',
-   },
-});
 
 function PlayoffBracketPicks( props )
 {
@@ -164,7 +141,7 @@ function PlayoffBracketPicks( props )
                   playoffTeams={playoffTeams}
                />
 
-               <TiebreakerInput
+               <TextField
                   label="Total Score"
                   id="tiebreaker-input"
                   variant="outlined"
