@@ -1,0 +1,21 @@
+{
+  "aws_project_region": "us-east-2",
+  "aws_dynamodb_all_tables_region": "us-east-2",
+  "aws_dynamodb_table_schemas": [
+    {
+      "tableName": "playoffbrackets-dev",
+      "region": "us-east-2"
+    },
+    {
+      "tableName": "playoffteams-dev",
+      "region": "us-east-2"
+    }
+  ],
+  "aws_cloud_logic_custom": [
+    {
+      "name": "apiplayoffbrackets",
+      "endpoint": "https://kyzo51ow4j.execute-api.us-east-2.amazonaws.com/dev",
+      "region": "us-east-2"
+    }
+  ]
+}

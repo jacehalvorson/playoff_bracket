@@ -15,6 +15,7 @@
 #playoff-bracket-what-if {
    height: 8em;
    width: 100%;
+   margin-bottom: 1em;
    
    display: flex;
    align-items: center;

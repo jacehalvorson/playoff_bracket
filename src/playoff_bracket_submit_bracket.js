@@ -76,7 +76,7 @@ Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\n
       }
 
       let bracketData = {
-         key: "2025dev",
+         key: `2025${group}`,
          player: name,
          brackets: brackets,
          devices: devices
