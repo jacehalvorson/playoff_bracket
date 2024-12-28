@@ -2,8 +2,7 @@ main#playoff-bracket {
    position: relative;
    z-index: 1;
    min-height: 100vh;
-   font-size: clamp( 8px, 1vw, 16px );
-   background: rgb(0,0,0);
+   font-size: clamp( 8px, 1vw, 12px );
    padding-bottom: 20em;
 
    display: flex;

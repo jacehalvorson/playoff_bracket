@@ -31,13 +31,8 @@ function PlayoffBracketLeaderboard( props )
 
    // Call API to load brackets when the page loads
    useEffect( ( ) => {
-      // Wait to call the API until the group is set
-      if ( !group )
-      {
-         return;
-      }
-
-      fetchAPI( apiName, `/brackets/${currentYear}${group}` )
+      const path = ( group && group !== "All" ) ? `/brackets/${currentYear}/${group}` : `/brackets/${currentYear}`;
+      fetchAPI( apiName, path )
       .then(response =>
       {
          let brackets = [];
@@ -242,12 +237,9 @@ function PlayoffBracketLeaderboard( props )
          : brackets.map( ( bracket, index ) =>
             <div className="playoff-bracket-leaderboard-entry" 
                onClick={ ( ) => {
-                  if ( bracket.devices && bracket.devices.includes( deviceId ) )
-                  {
-                     setPicks( bracket.picks );
-                     switchFocus( null, 1 );
-                  }}
-               }
+                  setPicks( bracket.picks );
+                  switchFocus( null, 1 );
+               }}
                key={index}
             >
                {/* Entry name */}

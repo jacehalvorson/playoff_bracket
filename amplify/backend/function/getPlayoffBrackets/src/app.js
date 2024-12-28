@@ -62,7 +62,7 @@ const convertUrlType = (param, type) => {
 app.get(path, async function(req, res) {
   var params = {
     TableName: tableName,
-    Select: 'ALL_ATTRIBUTES',
+    Select: 'ALL_ATTRIBUTES'
   };
 
   try {
@@ -75,10 +75,56 @@ app.get(path, async function(req, res) {
 });
 
 /************************************
- * HTTP Get method to query objects *
+ * HTTP Get method to query all objects from a given year *
  ************************************/
 
-app.get(path + hashKeyPath, async function(req, res) {
+app.get(path + '/:year', async function(req, res) {
+  if ( !/^[0-9]{4}$/.test( req.params['year'] ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid year "' + req.params['year'] + '"'});
+    return;
+  }
+
+  var params = {
+    TableName: tableName,
+    Select: 'ALL_ATTRIBUTES',
+    FilterExpression: 'contains(#key, :year)',
+    ExpressionAttributeNames: {
+      '#key': 'key'
+    },
+    ExpressionAttributeValues: {
+      ':year': req.params['year']
+    }
+  };
+
+  try {
+    const data = await ddbDocClient.send(new ScanCommand(params));
+    res.json(data.Items);
+  } catch (err) {
+    res.statusCode = 500;
+    res.json({error: 'Could not load items: ' + err.message});
+  }
+});
+
+/*****************************************
+ * HTTP Get method for all objects within a group within a year *
+ *****************************************/
+
+app.get(path + '/:year' + '/:group', async function(req, res) {
+  if ( !/^[0-9]{4}$/.test( req.params['year'] ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid year "' + req.params['year'] + '"'});
+    return;
+  }
+  if ( !/^[A-Za-z0-9!?]{1,20}$/.test( req.params['group'] ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid group "' + req.params['group'] + '"'});
+    return;
+  }
+
   const condition = {}
 
   condition[partitionKeyName] = {
@@ -86,13 +132,14 @@ app.get(path + hashKeyPath, async function(req, res) {
   }
 
   if (userIdPresent && req.apiGateway) {
-    condition[partitionKeyName]['AttributeValueList'] = [req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH ];
+    condition[partitionKeyName]['AttributeValueList'] = [ req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH ];
   } else {
     try {
-      condition[partitionKeyName]['AttributeValueList'] = [ convertUrlType(req.params[partitionKeyName], partitionKeyType) ];
+      condition[partitionKeyName]['AttributeValueList'] = [ convertUrlType(req.params['year'] + req.params['group'], partitionKeyType) ];
     } catch(err) {
-      res.statusCode = 500;
+      res.statusCode = 400;
       res.json({error: 'Wrong column type ' + err});
+      return;
     }
   }
 
@@ -104,50 +151,6 @@ app.get(path + hashKeyPath, async function(req, res) {
   try {
     const data = await ddbDocClient.send(new QueryCommand(queryParams));
     res.json(data.Items);
-  } catch (err) {
-    res.statusCode = 500;
-    res.json({error: 'Could not load items: ' + err.message});
-  }
-});
-
-/*****************************************
- * HTTP Get method for get single object *
- *****************************************/
-
-app.get(path + hashKeyPath + sortKeyPath, async function(req, res) {
-  const params = {};
-  if (userIdPresent && req.apiGateway) {
-    params[partitionKeyName] = req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH;
-  } else {
-    params[partitionKeyName] = req.params[partitionKeyName];
-    try {
-      params[partitionKeyName] = convertUrlType(req.params[partitionKeyName], partitionKeyType);
-    } catch(err) {
-      res.statusCode = 500;
-      res.json({error: 'Wrong column type ' + err});
-    }
-  }
-  if (hasSortKey) {
-    try {
-      params[sortKeyName] = convertUrlType(req.params[sortKeyName], sortKeyType);
-    } catch(err) {
-      res.statusCode = 500;
-      res.json({error: 'Wrong column type ' + err});
-    }
-  }
-
-  let getItemParams = {
-    TableName: tableName,
-    Key: params
-  }
-
-  try {
-    const data = await ddbDocClient.send(new GetCommand(getItemParams));
-    if (data.Item) {
-      res.json(data.Item);
-    } else {
-      res.json(data) ;
-    }
   } catch (err) {
     res.statusCode = 500;
     res.json({error: 'Could not load items: ' + err.message});

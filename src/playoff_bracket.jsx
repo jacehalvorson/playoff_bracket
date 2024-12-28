@@ -29,16 +29,6 @@ const apiName = 'apiplayoffbrackets';
 
 const currentYear = 2025;
 
-const groups = [
-   "dev",
-   "test",
-   "prod",
-   "asjhfiuskwbgf294uwfbicv7bgqubfaeibdvfvf7bvouqe3hfo8q3hoanc".substring(0, 20),
-   "asjhfiuskwbgf294uwfbicv7bgqubfaeibdvfvf7bvouqe3hfo8q3hoanc".substring(0, 20),
-   "asjhfiuskwbgf294uwfbicv7bgqubfaeibdvfvf7bvouqe3hfo8q3hoanc".substring(0, 20),
-   "asjhfiuskwbgf294uwfbicv7bgqubfaeibdvfvf7bvouqe3hfo8q3hoanc".substring(0, 20),
-];
-
 function getOrCreateDeviceId( ) 
 {
    let deviceId = localStorage.getItem( 'deviceId' );
@@ -58,28 +48,33 @@ function PlayoffBracket( )
    const [ newBracketSubmitted, setNewBracketSubmitted ] = useState( false );
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( { } );
+   const [ groups, setGroups ] = useState( [ ] );
    const [ group, setGroup ] = useState( "" );
    const [ searchParams ] = useSearchParams( );
 
    // Update the group based on the URL
    useEffect( ( ) => {
       const groupParam = searchParams.get( "group" );
+      let newGroup;
 
       // If the group is null, contains 20+ characters, or contains invalid characters,
       // default group to "dev"
-      if ( !groupParam || !/^[A-Za-z0-9!?]{1,20}$/.test( groupParam ) )
+      if ( groupParam && /^[A-Za-z0-9!?]{1,20}$/.test( groupParam ) )
       {
-         setGroup( "dev" );
-         return;
+         newGroup = groupParam;
+      }
+      else
+      {
+         newGroup = "All";
       }
       
       // Valid group name
-      setGroup( groupParam );
-
+      setGroup( newGroup );
    }, [ searchParams ] );
    
-   // API call to fetch teams when the page loads
+   // API call to fetch teams and groups when the page loads
    useEffect( ( ) => {
+      // Teams
       fetchAPI( apiName, `/teams/${currentYear}` )
       .then( response => {
          const winners = response.find( item => item.index === "winners" ).value;
@@ -101,6 +96,21 @@ function PlayoffBracket( )
             "A6": { name: response.find( item => item.index === "A6" ).value, seed: 6 },
             "A7": { name: response.find( item => item.index === "A7" ).value, seed: 7 }
          } );
+      })
+      .catch( e => {
+         console.error( e );
+      });
+
+      // Groups
+      fetchAPI( apiName, `/brackets/${currentYear}` )
+      .then( response => {
+         const groups = response.map( bracket =>
+         {
+            const group = bracket.key.substring( 4 );
+            return group;
+         }).filter( group => /^[A-Za-z0-9!?]{1,20}$/.test( group ) );
+
+         setGroups( [ ...new Set( groups ) ] );
       })
       .catch( e => {
          console.error( e );
@@ -161,13 +171,13 @@ function PlayoffBracket( )
                   <InputLabel id="group-selection-input-label" style={{ color: "white" }}>Group</InputLabel>
                   <Select
                      id="group-selection-select"
-                     value={ groups.includes( group ) ? group : "" }
+                     value={ group }
                      label="Group"
                      onChange={ ( event ) => setGroup( event.target.value ) }
                      style={{ color: "white" }}
                      autoWidth
                   >
-                     <MenuItem value={""}> All </MenuItem>
+                     <MenuItem value={"All"}> All </MenuItem>
                      { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
                   </Select>
                </FormControl>
@@ -192,6 +202,7 @@ function PlayoffBracket( )
                setNewBracketSubmitted={setNewBracketSubmitted}
                playoffTeams={playoffTeams}
                group={group}
+               switchFocus={switchFocus}
             />
          </div>
 
