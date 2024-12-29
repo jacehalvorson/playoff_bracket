@@ -1,44 +1,21 @@
 import { useState, useEffect } from "react";
 
-import { computeAllGames, emptyGames, nflTeamColors } from "./playoff_bracket_utils"
-import submitBracket from "./playoff_bracket_submit_bracket";
+import { computeAllGames, emptyGames, nflTeamColors } from "./bracket_utils.js"
+import submitBracket from "./submit_bracket.js";
 
 import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import TextField from '@mui/material/TextField';
-import { styled } from '@mui/material/styles';
 
-import "./playoff_bracket_picks.css";
+import "./picks.css";
 
-const TiebreakerInput = styled(TextField)({
-   '& .MuiOutlinedInput-root': {
-      '& fieldset': {
-         borderColor: 'white',
-      },
-      '&:hover fieldset': {
-         borderColor: 'white',
-      },
-      '&.Mui-focused fieldset': {
-         borderColor: 'white',
-      },
-   },
-   '& label': {
-      color: 'white'
-   },
-   '& input': {
-      color: 'white'
-   },
-   '& label.Mui-focused': {
-     color: 'white',
-   },
-});
 
-function PlayoffBracketPicks( props )
+function Picks( props )
 {
    const [games, setGames] = useState( emptyGames );
-   const [tiebreaker, setTiebreaker] = useState( 0 );
-   const [submitStatus, setSubmitStatus] = useState( "Submit" );
+   const [tiebreaker, setTiebreaker] = useState( "0" );
+   const [submitStatus, setSubmitStatus] = useState( "" );
 
    const currentYear = props.currentYear
    const deviceId = props.deviceId;
@@ -47,6 +24,7 @@ function PlayoffBracketPicks( props )
    const setNewBracketSubmitted = props.setNewBracketSubmitted;
    const playoffTeams = props.playoffTeams;
    const group = props.group;
+   const switchFocus = props.switchFocus;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
    const updatePick = ( index, value ) =>
@@ -71,7 +49,7 @@ function PlayoffBracketPicks( props )
       setGames( computeAllGames( picks ) );
 
       // Reset the submit status when the picks change
-      setSubmitStatus( "Submit" );
+      setSubmitStatus( "" );
    }, [ picks ] );
 
    return (
@@ -164,48 +142,50 @@ function PlayoffBracketPicks( props )
                   playoffTeams={playoffTeams}
                />
 
-               <TiebreakerInput
-                  label="Total Score"
-                  id="tiebreaker-input"
-                  variant="outlined"
-                  size="small"
-                  inputMode="numeric"
-                  style={{ marginTop: "1em" }}
-                  onChange={( event ) => {
-                     setTiebreaker( parseInt( event.target.value ));
-                  }}
-               />
+               <div style={{display: "flex", justifyContent: "center", alignItems: "end", gap: "1em"}}>
+                  <TextField
+                     label="Total Score"
+                     id="tiebreaker-input"
+                     variant="outlined"
+                     size="small"
+                     inputMode="numeric"
+                     style={{ marginTop: "1em" }}
+                     onChange={( event ) => {
+                        setTiebreaker( event.target.value );
+                     }}
+                  />
+
+                  {/* If the input isn't valid don't allow submision */}
+                  {( !picks || !/[1-2]{13}$/.test( picks ) ||
+                     !tiebreaker || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 )
+
+                        // Picks are not filled out, disable submission
+                        ? <Button
+                           id="submit-picks-button"
+                           variant="outlined"
+                           size="large"
+                        >
+                           Submit
+                        </Button>
+
+                        // Picks are filled out, allow submission
+                        : <Button
+                           id="submit-picks-button"
+                           variant="contained"
+                           size="large"
+                           onClick={ ( ) =>
+                           {
+                              submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
+                           }}
+                        >
+                           Submit
+                        </Button>
+                  }
+               </div>
+               
+               <h2 id="submit-status" style={{margin: "0.5em", width: "90vw", textAlign: "center"}}>{submitStatus}</h2>
             </div>
          </div>
-
-         {/* If the input isn't valid don't allow submision */}
-         {( !picks || picks.includes("0") || picks.length !== 13 ||
-            !tiebreaker || isNaN( tiebreaker ) || tiebreaker < 0 )
-         
-         // Picks are not filled out, disable submission
-         ? <Button
-            id="submit-picks-button"
-            variant="outlined"
-            size="large"
-            style={{marginTop: "-3em"}}
-         >
-            Submit
-         </Button>
-
-         // Picks are filled out, allow submission
-         : <Button
-            id="submit-picks-button"
-            variant="contained"
-            style={{marginTop: "-3em"}}
-            size="large"
-            onClick={ ( ) =>
-            {
-               submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group );
-            }}
-         >
-            { ( submitStatus === "" ) ? "Submit" : submitStatus }
-         </Button>
-         }
       </div>
    );
 }
@@ -278,4 +258,4 @@ function PlayoffBracketGame( props )
    )
 }
 
-export default PlayoffBracketPicks;
+export default Picks;

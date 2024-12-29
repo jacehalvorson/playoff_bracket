@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
-import PlayoffBracketLeaderboard from "./playoff_bracket_leaderboard.jsx";
-import PlayoffBracketPicks from "./playoff_bracket_picks.jsx";
-import { fetchAPI } from "./playoff_bracket_api.js";
+import Leaderboard from "./leaderboard.jsx";
+import Picks from "./picks.jsx";
+import { fetchAPI } from "./api_requests.js";
 
 import "./playoff_bracket.css";
 
@@ -10,6 +10,17 @@ import { useSearchParams } from 'react-router-dom';
 
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
+const theme = createTheme({
+   palette: {
+      mode: "dark"
+   },
+});
 
 const LEADERBOARD_FOCUS = 0;
 const PICKS_FOCUS = 1;
@@ -37,28 +48,33 @@ function PlayoffBracket( )
    const [ newBracketSubmitted, setNewBracketSubmitted ] = useState( false );
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( { } );
+   const [ groups, setGroups ] = useState( [ ] );
    const [ group, setGroup ] = useState( "" );
    const [ searchParams ] = useSearchParams( );
 
    // Update the group based on the URL
    useEffect( ( ) => {
       const groupParam = searchParams.get( "group" );
+      let newGroup;
 
       // If the group is null, contains 20+ characters, or contains invalid characters,
       // default group to "dev"
-      if ( !groupParam || !/^[A-Za-z0-9!?]{1,20}$/.test( groupParam ) )
+      if ( groupParam && /^[A-Za-z0-9!?]{1,20}$/.test( groupParam ) )
       {
-         setGroup( "dev" );
-         return;
+         newGroup = groupParam;
+      }
+      else
+      {
+         newGroup = "All";
       }
       
       // Valid group name
-      setGroup( groupParam );
-
+      setGroup( newGroup );
    }, [ searchParams ] );
    
-   // API call to fetch teams when the page loads
+   // API call to fetch teams and groups when the page loads
    useEffect( ( ) => {
+      // Teams
       fetchAPI( apiName, `/teams/${currentYear}` )
       .then( response => {
          const winners = response.find( item => item.index === "winners" ).value;
@@ -80,6 +96,21 @@ function PlayoffBracket( )
             "A6": { name: response.find( item => item.index === "A6" ).value, seed: 6 },
             "A7": { name: response.find( item => item.index === "A7" ).value, seed: 7 }
          } );
+      })
+      .catch( e => {
+         console.error( e );
+      });
+
+      // Groups
+      fetchAPI( apiName, `/brackets/${currentYear}` )
+      .then( response => {
+         const groups = response.map( bracket =>
+         {
+            const group = bracket.key.substring( 4 );
+            return group;
+         }).filter( group => /^[A-Za-z0-9!?]{1,20}$/.test( group ) );
+
+         setGroups( [ ...new Set( groups ) ] );
       })
       .catch( e => {
          console.error( e );
@@ -107,7 +138,7 @@ function PlayoffBracket( )
    const deviceId = getOrCreateDeviceId( );
 
    return (
-      <main id="playoff-bracket">
+      <main id="playoff-bracket"><ThemeProvider theme={theme}>
          <h1>{ currentYear } Playoff Bracket</h1>
 
          <div id="focus-selection-group">
@@ -115,7 +146,6 @@ function PlayoffBracket( )
                onChange={switchFocus}
                value={focus}
                exclusive
-               sx={{bgcolor: "white"}}
                aria-label="select-focus"
             >
                <ToggleButton
@@ -135,8 +165,27 @@ function PlayoffBracket( )
             </ToggleButtonGroup>
          </div>
 
+         <ThemeProvider theme={theme}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+               <FormControl id="group-selection" variant="outlined" sx={{ minWidth: 120 }} size="small">
+                  <InputLabel id="group-selection-input-label" style={{ color: "white" }}>Group</InputLabel>
+                  <Select
+                     id="group-selection-select"
+                     value={ group }
+                     label="Group"
+                     onChange={ ( event ) => setGroup( event.target.value ) }
+                     style={{ color: "white" }}
+                     autoWidth
+                  >
+                     <MenuItem value={"All"}> All </MenuItem>
+                     { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
+                  </Select>
+               </FormControl>
+            </div>
+         </ThemeProvider>
+
          <div id="playoff-bracket-content" style={{ marginLeft: `${ focus * -100 }vw` }}>
-            <PlayoffBracketLeaderboard
+            <Leaderboard
                deviceId={deviceId}
                setPicks={setPicks}
                switchFocus={switchFocus}
@@ -145,7 +194,7 @@ function PlayoffBracket( )
                playoffTeams={playoffTeams}
                group={group}
             />
-            <PlayoffBracketPicks
+            <Picks
                deviceId={deviceId}
                currentYear={currentYear}
                picks={picks}
@@ -153,11 +202,12 @@ function PlayoffBracket( )
                setNewBracketSubmitted={setNewBracketSubmitted}
                playoffTeams={playoffTeams}
                group={group}
+               switchFocus={switchFocus}
             />
          </div>
 
          <div id="playoff-bracket-background-picture" />
-      </main>
+      </ThemeProvider></main>
    );
 }
 

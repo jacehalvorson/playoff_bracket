@@ -1,8 +1,8 @@
-import { fetchAPI, postAPI } from "./playoff_bracket_api.js";
+import { fetchAPI, postAPI } from "./api_requests.js";
 
 const apiName = "apiplayoffbrackets";
 
-export default async function submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group )
+export default async function submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus )
 {
    let brackets = [ ];
    let devices = [ ];
@@ -13,10 +13,25 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
       tiebreaker: tiebreaker
    };
 
+   if ( !group || group === "All" )
+   {
+      setSubmitStatus( "Select a group to submit bracket" );
+      return;
+   }
+      
+   if ( !picks || !tiebreaker ||
+        !/[1-2]{13}$/.test( picks ) ||
+        isNaN( parseInt( tiebreaker ) ) ||
+        parseInt( tiebreaker ) < 0 )
+   {
+      setSubmitStatus( "Invalid input" );
+      return;
+   }
+
    setSubmitStatus( "Adding bracket to leaderboard..." );
 
    // Check if this player is already in this group
-   fetchAPI( apiName, `/brackets/${currentYear}${group}` )
+   fetchAPI( apiName, `/brackets/${currentYear}/${group}` )
    .then( response => {
       // First check if this device has been used in the past
       response.forEach( player =>
@@ -24,11 +39,10 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
          if ( ( player.devices && player.devices.includes( deviceId ) )  )
          {
             playerFound = true;
-            let confirm = window.confirm(`${player.player} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\n\
-Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\nTiebreaker: ${bracket.tiebreaker}`);
+            let confirm = window.confirm(`${player.player} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\nDo you want to add another?`);
             if (!confirm)
             {
-               throw Error("Bracket not added to database");;
+               throw Error("Bracket submission cancelled");;
             }
             name = player.player;
             if ( player.brackets.find( entry => entry.picks === bracket.picks && entry.tiebreaker === bracket.tiebreaker ) )
@@ -43,22 +57,21 @@ Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\n
       // Prompt for a name and check if it is already in the database
       if (!playerFound)
       {
-         name = prompt( `Device ID: ${deviceId}\nPicks: ${bracket.picks}\nTiebreaker: ${bracket.tiebreaker}\n\nName:` );
+         name = prompt( `Enter your Display Name:` );
          if ( !name )
          {
-            throw Error("Bracket not added to database");;
+            throw Error("Bracket submission cancelled");;
          }
          brackets = [ bracket ];
          devices = [ deviceId ];
 
-         // Check if this player is already in the database (on a different device)
+         // Check if this player is already in this group (on a different device)
          response.forEach( player =>
          {
             if ( player.player === name )
             {
                playerFound = true;
-               let cancel = window.confirm(`${player.name} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\n\
-Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\nTiebreaker: ${bracket.tiebreaker}`);
+               let cancel = window.confirm(`${player.name} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\nDo you want to add another?`);
                if (cancel)
                {
                   setSubmitStatus( "Bracket not added to database" );
@@ -87,6 +100,7 @@ Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\n
       .then( response => {
          setSubmitStatus( "Success" );
          setNewBracketSubmitted( oldValue => !oldValue );
+         switchFocus( null, 0 );
       })
       .catch( err => {
          console.error( err );
@@ -94,7 +108,10 @@ Do you want to add another?\n\nDevice ID: ${deviceId}\nPicks: ${bracket.picks}\n
       });
    })
    .catch( err => {
-      console.error( err );
+      if ( err.message !== "Bracket submission cancelled" )
+      {
+         console.error( err );
+      }
       setSubmitStatus( err.message );
    });
 }
