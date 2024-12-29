@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
 
-import { computeAllGames, emptyGames, nflTeamColors } from "./playoff_bracket_utils"
-import submitBracket from "./playoff_bracket_submit_bracket";
+import { computeAllGames, emptyGames, nflTeamColors } from "./bracket_utils.js"
+import submitBracket from "./submit_bracket.js";
 
 import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import TextField from '@mui/material/TextField';
 
-import "./playoff_bracket_picks.css";
+import "./picks.css";
 
 
-function PlayoffBracketPicks( props )
+function Picks( props )
 {
    const [games, setGames] = useState( emptyGames );
    const [tiebreaker, setTiebreaker] = useState( "0" );
@@ -258,4 +258,4 @@ function PlayoffBracketGame( props )
    )
 }
 
-export default PlayoffBracketPicks;
+export default Picks;

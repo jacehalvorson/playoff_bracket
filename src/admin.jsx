@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { fetchAPI } from "./playoff_bracket_api.js";
-import submitGameComplete from "./payment_game_win.js";
+import { fetchAPI } from "./api_requests.js";
+import submitWinners from "./submit_winners.js";
 import { getOrCreateDeviceId } from "./playoff_bracket.jsx"
-import { computeAllGames } from "./playoff_bracket_utils"
+import { computeAllGames } from "./bracket_utils.js";
 
-import "./PaymentGameWin.css";
+import "./admin.css";
 
 const apiName = "apiplayoffbrackets";
 
 const currentYear = 2025;
 
-function PaymentGameWin( )
+function Admin( )
 {
     const [submitGame, setSubmitGame] = useState( "" );
     const [scores, setScores] = useState( "0000000000000" );
@@ -164,7 +164,7 @@ function PaymentGameWin( )
             <input type="text" id="newPicks" defaultValue={scores} key={scores} />
             <button
                 id="add-to-NFL-bracket"
-                onClick={ ( ) => { submitGameComplete( setSubmitGame, deviceId ); }}
+                onClick={ ( ) => { submitWinners( setSubmitGame, deviceId ); }}
             >
                 Update NFL Bracket
             </button>
@@ -174,5 +174,4 @@ function PaymentGameWin( )
      );
 }
 
-
-export default PaymentGameWin;
+export default Admin;

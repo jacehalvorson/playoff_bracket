@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
-import PlayoffBracketLeaderboard from "./playoff_bracket_leaderboard.jsx";
-import PlayoffBracketPicks from "./playoff_bracket_picks.jsx";
-import { fetchAPI } from "./playoff_bracket_api.js";
+import Leaderboard from "./leaderboard.jsx";
+import Picks from "./picks.jsx";
+import { fetchAPI } from "./api_requests.js";
 
 import "./playoff_bracket.css";
 
@@ -185,7 +185,7 @@ function PlayoffBracket( )
          </ThemeProvider>
 
          <div id="playoff-bracket-content" style={{ marginLeft: `${ focus * -100 }vw` }}>
-            <PlayoffBracketLeaderboard
+            <Leaderboard
                deviceId={deviceId}
                setPicks={setPicks}
                switchFocus={switchFocus}
@@ -194,7 +194,7 @@ function PlayoffBracket( )
                playoffTeams={playoffTeams}
                group={group}
             />
-            <PlayoffBracketPicks
+            <Picks
                deviceId={deviceId}
                currentYear={currentYear}
                picks={picks}

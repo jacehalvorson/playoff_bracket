@@ -1,4 +1,4 @@
-import { fetchAPI, postAPI } from "./playoff_bracket_api.js";
+import { fetchAPI, postAPI } from "./api_requests.js";
 
 const apiName = "apiplayoffbrackets";
 

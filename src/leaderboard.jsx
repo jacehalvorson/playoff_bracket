@@ -1,10 +1,10 @@
 import { useEffect, useState, Fragment } from "react";
 
-import calculatePoints from "./playoff_bracket_calculate_points.js";
-import { getCurrentGames, nflTeamColors } from "./playoff_bracket_utils.js";
-import { fetchAPI } from "./playoff_bracket_api.js";
+import calculatePoints from "./calculate_points.js";
+import { getCurrentGames, nflTeamColors } from "./bracket_utils.js";
+import { fetchAPI } from "./api_requests.js";
 
-import "./playoff_bracket_leaderboard.css";
+import "./leaderboard.css";
 
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -12,7 +12,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 const apiName = "apiplayoffbrackets";
 const currentYear = 2025;
 
-function PlayoffBracketLeaderboard( props )
+function Leaderboard( props )
 {
    const [ unprocessedBrackets, setUnprocessedBrackets ] = useState( [ ] );
    const [ brackets, setBrackets ] = useState( [ ] );
@@ -262,4 +262,4 @@ function PlayoffBracketLeaderboard( props )
    );
 }
 
-export default PlayoffBracketLeaderboard;
+export default Leaderboard;

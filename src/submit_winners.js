@@ -1,10 +1,10 @@
-import { postAPI } from "./playoff_bracket_api.js";
+import { postAPI } from "./api_requests.js";
 
 const apiName = "apiplayoffbrackets";
 
 const currentYear = 2025;
 
-export default async function submitGameComplete(setSubmitGame, deviceID, picks)
+export default async function submitWinners(setSubmitGame, deviceID)
 {
     const devices = ["gp5menfyg", "80gagw0", "3jqsmufo9"];
     let validDevice = false;
