@@ -1,4 +1,4 @@
-import { computeAllGames } from "./playoff_bracket_utils";
+import { computeAllGames } from "./bracket_utils.js";
 
 // Returns winner of a game
 // Format: "N1", "N2", ..., "A1", "A2", ... or null

@@ -1,21 +1,20 @@
 import { useEffect, useState, Fragment } from "react";
 
-import calculatePoints from "./playoff_bracket_calculate_points.js";
-import { getCurrentGames, nflTeamColors } from "./playoff_bracket_utils.js";
-import { fetchAPI } from "./playoff_bracket_api.js";
+import calculatePoints from "./calculate_points.js";
+import { getCurrentGames, nflTeamColors } from "./bracket_utils.js";
+import { fetchAPI } from "./api_requests.js";
 
-import "./playoff_bracket_leaderboard.css";
+import "./leaderboard.css";
 
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 const apiName = "apiplayoffbrackets";
 const currentYear = 2025;
-const group = "dev";
 
-function PlayoffBracketLeaderboard(props)
+function Leaderboard( props )
 {
-   const [ tempBrackets, setTempBrackets ] = useState( [ ] );
+   const [ unprocessedBrackets, setUnprocessedBrackets ] = useState( [ ] );
    const [ brackets, setBrackets ] = useState( [ ] );
    const [ loadStatus, setLoadStatus ] = useState( "Loading brackets..." );
    const [ currentPicksOffset, setCurrentPicksOffset ] = useState( 0 );
@@ -28,57 +27,62 @@ function PlayoffBracketLeaderboard(props)
    const playoffTeams = props.playoffTeams;
    const winningPicks = props.winningPicks;
    const switchFocus = props.switchFocus;
-   
-   useEffect( ( ) => {
-      fetchAPI( apiName, `/brackets/${currentYear}${group}` )
-         .then(response =>
-         {
-            let brackets = [];
-            response.forEach( player =>
-            {
-               if ( !player.brackets || player.brackets.length === 0 )
-               {
-                  console.error("Player " + player.player + " has no brackets");
-               }
-               else
-               {
-                  player.brackets.forEach((bracket, bracketIndex) =>
-                     brackets.push({
-                        name: player.player,
-                        bracketIndex: bracketIndex,
-                        picks: bracket.picks,
-                        tiebreaker: bracket.tiebreaker,
-                        // The following 3 fields will be populated by calculatePoints.
-                        // Default to nominal values for now.
-                        points: 0,
-                        maxPoints: 0,
-                        superBowlWinner: "N1",
-                        // Temporary
-                        devices: player.devices
-                     })
-                  );
+   const group = props.group;
 
-                  if ( player.devices && player.devices.includes( deviceId ) )
-                  {
-                     console.log("This is player " + player.player + " with device ID " + deviceId);
-                  }
-               }
-            });
-            setTempBrackets( brackets );
-            if ( brackets.length === 0 )
+   // Call API to load brackets when the page loads
+   useEffect( ( ) => {
+      const path = ( group && group !== "All" ) ? `/brackets/${currentYear}/${group}` : `/brackets/${currentYear}`;
+      fetchAPI( apiName, path )
+      .then(response =>
+      {
+         let brackets = [];
+         response.forEach( player =>
+         {
+            if ( !player.brackets || player.brackets.length === 0 )
             {
-               setLoadStatus( "No brackets found" );
+               console.error("Player " + player.player + " has no brackets");
             }
             else
             {
-               setLoadStatus( "Processing brackets..." );
+               player.brackets.forEach((bracket, bracketIndex) =>
+                  brackets.push({
+                     name: player.player,
+                     bracketIndex: bracketIndex,
+                     picks: bracket.picks,
+                     tiebreaker: bracket.tiebreaker,
+                     // The following 3 fields will be populated by calculatePoints.
+                     // Default to nominal values for now.
+                     points: 0,
+                     maxPoints: 0,
+                     superBowlWinner: "N1",
+                     // Temporary
+                     devices: player.devices
+                  })
+               );
+
+               if ( player.devices && player.devices.includes( deviceId ) )
+               {
+                  console.log( "This is player " + player.player + " with device ID " + deviceId );
+               }
             }
-          })
-         .catch( err => {
-            console.error( err );
-            setLoadStatus( "Error fetching brackets from database" );
          });
-   }, [ deviceId, newBracketSubmitted ] );
+
+         setUnprocessedBrackets( brackets );
+         
+         if ( brackets.length === 0 )
+         {
+            setLoadStatus( "No brackets found in group \"" + group + "\"");
+         }
+         else
+         {
+            setLoadStatus( "Processing brackets..." );
+         }
+         })
+      .catch( err => {
+         console.error( err );
+         setLoadStatus( "Error fetching brackets from database" );
+      });
+   }, [ deviceId, newBracketSubmitted, group ] );
    
    // Update the current games based on the winning picks
    useEffect( ( ) => {
@@ -134,7 +138,7 @@ function PlayoffBracketLeaderboard(props)
                     winningPicks.substring( currentPicksOffset + currentGames.length );
 
       // Calculate points, sort, and write the brackets to the global variable
-      let brackets = [ ...tempBrackets ];
+      let brackets = [ ...unprocessedBrackets ];
       brackets.forEach(bracket => {
          const calculatedData = calculatePoints( bracket.picks, scoreSource );
          bracket.points = calculatedData.points;
@@ -164,7 +168,7 @@ function PlayoffBracketLeaderboard(props)
       {
          setLoadStatus( "" );
       }
-   }, [ tempBrackets, currentGames, currentPicksOffset, testPicks, winningPicks ] );
+   }, [ unprocessedBrackets, currentGames, currentPicksOffset, testPicks, winningPicks ] );
 
    return (
       <div id="playoff-bracket-leaderboard">
@@ -233,12 +237,9 @@ function PlayoffBracketLeaderboard(props)
          : brackets.map( ( bracket, index ) =>
             <div className="playoff-bracket-leaderboard-entry" 
                onClick={ ( ) => {
-                  if ( bracket.devices && bracket.devices.includes( deviceId ) )
-                  {
-                     setPicks( bracket.picks );
-                     switchFocus( null, 1 );
-                  }}
-               }
+                  setPicks( bracket.picks );
+                  switchFocus( null, 1 );
+               }}
                key={index}
             >
                {/* Entry name */}
@@ -261,4 +262,4 @@ function PlayoffBracketLeaderboard(props)
    );
 }
 
-export default PlayoffBracketLeaderboard;
+export default Leaderboard;

@@ -9,12 +9,10 @@ async function fetchAPI( apiName, path )
          apiName: apiName,
          path: path
       });
-
+      
       const { body } = await restOperation.response;
       const response = await body.json();
 
-      console.log('GET call succeeded: ');
-      console.log(response);
       return response;
    }
    catch (e)
@@ -43,8 +41,6 @@ async function postAPI( apiName, path, inputBody )
       const { body } = await restOperation.response;
       const response = await body.json();
 
-      console.log('POST call succeeded: ');
-      console.log(response);
       return response;
    }
    catch (e)
