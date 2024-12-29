@@ -18,7 +18,7 @@ function Picks( props )
    const [submitStatus, setSubmitStatus] = useState( "" );
 
    const currentYear = props.currentYear
-   const deviceId = props.deviceId;
+   const deviceID = props.deviceID;
    const picks = props.picks;
    const setPicks = props.setPicks;
    const setNewBracketSubmitted = props.setNewBracketSubmitted;
@@ -38,9 +38,9 @@ function Picks( props )
 
       // Take the existing picks before and after the index, but replace to value at the index
       // e.g., "1121" + "2" + "00000000"
-      let newPicks = picks.substring(0, index) +
-                     value.toString() +
-                     picks.substring(index + 1);
+      let newPicks = picks.substring( 0, index ) +
+                     value.toString( ) +
+                     picks.substring( index + 1 );
       setPicks( newPicks );
    }
 
@@ -175,7 +175,7 @@ function Picks( props )
                            size="large"
                            onClick={ ( ) =>
                            {
-                              submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
+                              submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
                            }}
                         >
                            Submit
