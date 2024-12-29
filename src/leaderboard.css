@@ -58,25 +58,39 @@
    overflow: hidden;
    padding-left: 1em;
    padding-right: 1em;
-
-   transition: background-color ease-in-out 200ms,
-               border ease-in-out 200ms,
-               box-shadow ease-in-out 300ms,
-               transform ease-in-out 150ms;
 }
 
-.playoff-bracket-leaderboard-entry:hover {
-   background-color: rgb(10, 10, 10);
-   border-color: rgba(255, 255, 255, 0.5);
-   box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
-   transform: scale(1.03);
+/* Devices that support true hover */
+@media (hover: hover) {
+   .playoff-bracket-leaderboard-entry {
+      transition: background-color ease-in-out 150ms,
+                  border ease-in-out 150ms,
+                  box-shadow ease-in-out 150ms,
+                  transform ease-in-out 150ms;
+   }
+
+   .playoff-bracket-leaderboard-entry:hover {
+      background-color: rgb(10, 10, 10);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      transform: scale(1.03);
+   }
+   
+   .playoff-bracket-leaderboard-entry:active {
+      background-color: rgb(0, 0, 0);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+      transform: none;
+   }
 }
 
-.playoff-bracket-leaderboard-entry:active {
-   background-color: rgb(0, 0, 0);
-   box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
-   transform: none;
-
+/* Devices that don't support true hover */
+@media (hover: none) {
+   .playoff-bracket-leaderboard-entry:active {
+      background-color: rgb(10, 10, 10);
+      border-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      transform: scale(0.95);
+   }
 }
 
 .playoff-bracket-leaderboard-entry > h2 {

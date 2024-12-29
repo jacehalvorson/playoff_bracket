@@ -48,6 +48,8 @@ function PlayoffBracket( )
    const [ groups, setGroups ] = useState( [ ] );
    const [ group, setGroup ] = useState( "" );
    const [ loadStatus, setLoadStatus ] = useState( "Loading brackets..." );
+   const [ currentBracket, setCurrentBracket ] = useState( null );
+   const [ gamesStarted, setGamesStarted ] = useState( false );
 
    const [ searchParams ] = useSearchParams( );
 
@@ -98,6 +100,8 @@ function PlayoffBracket( )
             "A6": { name: response.find( item => item.index === "A6" ).value, seed: 6 },
             "A7": { name: response.find( item => item.index === "A7" ).value, seed: 7 }
          } );
+
+         setGamesStarted( parseInt( response.find( item => item.index === "gamesStarted" ).value ) === 1 );
       })
       .catch( e => {
          console.log( "Error fetching teams: " + e );
@@ -191,7 +195,10 @@ function PlayoffBracket( )
                   style={{fontSize: "inherit", width: "9em"}}
                   aria-label="leaderboard button"
                >
-                  Leaderboard
+                  {(gamesStarted)
+                     ? "Leaderboard"
+                     : "Brackets"
+                  }
                </ToggleButton>
                <ToggleButton
                   value={1}
@@ -232,6 +239,9 @@ function PlayoffBracket( )
                allBrackets={allBrackets}
                loadStatus={loadStatus}
                setLoadStatus={setLoadStatus}
+               setCurrentBracket={setCurrentBracket}
+               gamesStarted={gamesStarted}
+               deviceID={deviceID}
             />
             <Picks
                deviceID={deviceID}
@@ -242,6 +252,8 @@ function PlayoffBracket( )
                playoffTeams={playoffTeams}
                group={group}
                switchFocus={switchFocus}
+               currentBracket={currentBracket}
+               gamesStarted={gamesStarted}
             />
          </div>
 

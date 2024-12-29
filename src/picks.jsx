@@ -14,7 +14,7 @@ import "./picks.css";
 function Picks( props )
 {
    const [games, setGames] = useState( emptyGames );
-   const [tiebreaker, setTiebreaker] = useState( "0" );
+   const [tiebreaker, setTiebreaker] = useState( "" );
    const [submitStatus, setSubmitStatus] = useState( "" );
 
    const currentYear = props.currentYear
@@ -25,6 +25,8 @@ function Picks( props )
    const playoffTeams = props.playoffTeams;
    const group = props.group;
    const switchFocus = props.switchFocus;
+   const currentBracket = props.currentBracket;
+   const gamesStarted = props.gamesStarted;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
    const updatePick = ( index, value ) =>
@@ -54,6 +56,15 @@ function Picks( props )
 
    return (
       <div id="playoff-bracket-picks">
+         <h2>
+         {
+            ( currentBracket && currentBracket.name )
+               ? ( gamesStarted )
+                  ? "Viewing bracket \"" + currentBracket.name + ( ( currentBracket.bracketIndex > 0 ) ? ` (${currentBracket.bracketIndex + 1})` : "" ) + "\""
+                  : "Editing bracket \"" + currentBracket.name + ( ( currentBracket.bracketIndex > 0 ) ? ` (${currentBracket.bracketIndex + 1})` : "" ) + "\""
+               : "Create New Bracket"
+         }
+         </h2>
          <div id="playoff-bracket-wildcard-games">
             <h2>Wild Card Games</h2>
             <div className="playoff-bracket-afc">
@@ -165,7 +176,11 @@ function Picks( props )
                            variant="outlined"
                            size="large"
                         >
-                           Submit
+                        {
+                           ( currentBracket && currentBracket.name )
+                              ? "Save"
+                              : "Submit"
+                        }
                         </Button>
 
                         // Picks are filled out, allow submission
@@ -178,7 +193,9 @@ function Picks( props )
                               submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
                            }}
                         >
-                           Submit
+                           ( currentBracket && currentBracket.name )
+                              ? "Save"
+                              : "Submit"
                         </Button>
                   }
                </div>

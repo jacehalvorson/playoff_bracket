@@ -23,6 +23,9 @@ function Leaderboard( props )
    const allBrackets = props.allBrackets;
    const loadStatus = props.loadStatus;
    const setLoadStatus = props.setLoadStatus;
+   const setCurrentBracket = props.setCurrentBracket;
+   const gamesStarted = props.gamesStarted;
+   const deviceID = props.deviceID;
 
    // Update the current games based on the winning picks
    useEffect( ( ) => {
@@ -81,8 +84,14 @@ function Leaderboard( props )
                         testPicks.substring( 0, currentGames.length ) +
                         winningPicks.substring( currentPicksOffset + currentGames.length );
 
-      // Get the brackets in the user's current group
+      // Get all the brackets in the user's current group
       let brackets = allBrackets.filter( bracket => ( bracket.group === group ) || ( group === "All" ) );
+
+      if ( !gamesStarted )
+      {
+         // Filter out brackets owned by other people if the games haven't started yet
+         brackets = brackets.filter( bracket => bracket.devices.includes( deviceID ) );
+      }
 
       // Calculate points, sort, and write the brackets to the global variable
       brackets.forEach(bracket =>
@@ -114,7 +123,13 @@ function Leaderboard( props )
       setBrackets( brackets );
       setLoadStatus( ( brackets.length === 0 ) ? `No brackets found in group ${group}` : "" );
 
-   }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus ] );
+   }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID ] );
+
+   // Wipe current bracket when changing groups
+   useEffect( ( ) =>
+   {
+      setCurrentBracket( null );
+   }, [ group, setCurrentBracket ] );
 
    return (
       <div id="playoff-bracket-leaderboard">
@@ -184,6 +199,7 @@ function Leaderboard( props )
             <div className="playoff-bracket-leaderboard-entry" 
                onClick={ ( ) => {
                   setPicks( bracket.picks );
+                  setCurrentBracket( bracket );
                   switchFocus( null, 1 );
                }}
                key={index}
