@@ -14,17 +14,21 @@ import "./picks.css";
 function Picks( props )
 {
    const [games, setGames] = useState( emptyGames );
-   const [tiebreaker, setTiebreaker] = useState( "0" );
    const [submitStatus, setSubmitStatus] = useState( "" );
 
    const currentYear = props.currentYear
-   const deviceId = props.deviceId;
+   const deviceID = props.deviceID;
    const picks = props.picks;
    const setPicks = props.setPicks;
+   const tiebreaker = props.tiebreaker;
+   const setTiebreaker = props.setTiebreaker
    const setNewBracketSubmitted = props.setNewBracketSubmitted;
    const playoffTeams = props.playoffTeams;
    const group = props.group;
    const switchFocus = props.switchFocus;
+   const currentBracket = props.currentBracket;
+   const setCurrentBracket = props.setCurrentBracket;
+   const gamesStarted = props.gamesStarted;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
    const updatePick = ( index, value ) =>
@@ -38,10 +42,16 @@ function Picks( props )
 
       // Take the existing picks before and after the index, but replace to value at the index
       // e.g., "1121" + "2" + "00000000"
-      let newPicks = picks.substring(0, index) +
-                     value.toString() +
-                     picks.substring(index + 1);
+      let newPicks = picks.substring( 0, index ) +
+                     value.toString( ) +
+                     picks.substring( index + 1 );
       setPicks( newPicks );
+
+      // If current viewing someone else's bracket, change these picks to a new bracket
+      if ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) )
+      {
+         setCurrentBracket( null );
+      }
    }
 
    // Update all the Wild Card games when the playoff teams or picks change
@@ -50,10 +60,53 @@ function Picks( props )
 
       // Reset the submit status when the picks change
       setSubmitStatus( "" );
-   }, [ picks ] );
+   }, [ picks, playoffTeams ] );
 
    return (
       <div id="playoff-bracket-picks">
+         <p style={{textAlign: "center", fontSize: "5em", maxWidth: "90vw"}}>
+         {
+            ( currentBracket )
+            ? ( currentBracket.devices && currentBracket.devices.includes( deviceID ) )
+               // Player owns this bracket
+               ? ( gamesStarted ?  "Y" : "Edit y" ) + "our " +
+                 ( ( currentBracket.bracketIndex > 0 ) 
+                     ? ( ( currentBracket.bracketIndex + 1 ) +
+                         ( ( currentBracket.bracketIndex + 1 === 1 )
+                           ? "st"
+                           : ( ( currentBracket.bracketIndex + 1 === 2 )
+                              ? "nd"
+                              : ( ( currentBracket.bracketIndex + 1 === 3 )
+                                 ? "rd"
+                                 : "th"
+                                )
+                             )
+                         )
+                       )
+                     : ""
+                 ) +
+                 " bracket"
+               // Another player's bracket
+               : currentBracket.name + "'s " +
+                 ( ( currentBracket.bracketIndex > 0 )
+                      ? ( ( currentBracket.bracketIndex + 1 ) +
+                          ( ( currentBracket.bracketIndex + 1 === 1 )
+                            ? "st"
+                            : ( ( currentBracket.bracketIndex + 1 === 2 )
+                               ? "nd"
+                               : ( ( currentBracket.bracketIndex + 1 === 3 )
+                                  ? "rd"
+                                  : "th"
+                                 )
+                              )
+                          )
+                        )
+                      : ""
+                 )
+                 + " bracket"
+            : "Create New Bracket"
+         }
+         </p>
          <div id="playoff-bracket-wildcard-games">
             <h2>Wild Card Games</h2>
             <div className="playoff-bracket-afc">
@@ -157,7 +210,8 @@ function Picks( props )
 
                   {/* If the input isn't valid don't allow submision */}
                   {( !picks || !/[1-2]{13}$/.test( picks ) ||
-                     !tiebreaker || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 )
+                     !tiebreaker || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
+                     ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) )
 
                         // Picks are not filled out, disable submission
                         ? <Button
@@ -165,7 +219,13 @@ function Picks( props )
                            variant="outlined"
                            size="large"
                         >
-                           Submit
+                        {
+                           ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
+                              ? "Save"
+                              : ( currentBracket )
+                                 ? "X"
+                                 : "Submit"
+                        }
                         </Button>
 
                         // Picks are filled out, allow submission
@@ -175,10 +235,14 @@ function Picks( props )
                            size="large"
                            onClick={ ( ) =>
                            {
-                              submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
+                              submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
                            }}
                         >
-                           Submit
+                        {
+                           ( currentBracket && currentBracket.name )
+                              ? "Save"
+                              : "Submit"
+                        }
                         </Button>
                   }
                </div>

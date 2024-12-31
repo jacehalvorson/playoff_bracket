@@ -2,88 +2,29 @@ import { useEffect, useState, Fragment } from "react";
 
 import calculatePoints from "./calculate_points.js";
 import { getCurrentGames, nflTeamColors } from "./bracket_utils.js";
-import { fetchAPI } from "./api_requests.js";
 
 import "./leaderboard.css";
 
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-const apiName = "apiplayoffbrackets";
-const currentYear = 2025;
-
 function Leaderboard( props )
 {
-   const [ unprocessedBrackets, setUnprocessedBrackets ] = useState( [ ] );
    const [ brackets, setBrackets ] = useState( [ ] );
-   const [ loadStatus, setLoadStatus ] = useState( "Loading brackets..." );
    const [ currentPicksOffset, setCurrentPicksOffset ] = useState( 0 );
    const [ currentGames, setCurrentGames ] = useState( [ ] );
    const [ testPicks, setTestPicks ] = useState( "000000" );
 
-   const newBracketSubmitted = props.newBracketSubmitted;
-   const setPicks = props.setPicks;
-   const deviceId = props.deviceId;
    const playoffTeams = props.playoffTeams;
    const winningPicks = props.winningPicks;
-   const switchFocus = props.switchFocus;
    const group = props.group;
+   const allBrackets = props.allBrackets;
+   const loadStatus = props.loadStatus;
+   const setLoadStatus = props.setLoadStatus;
+   const gamesStarted = props.gamesStarted;
+   const deviceID = props.deviceID;
+   const leaderboardEntryClick = props.leaderboardEntryClick;
 
-   // Call API to load brackets when the page loads
-   useEffect( ( ) => {
-      const path = ( group && group !== "All" ) ? `/brackets/${currentYear}/${group}` : `/brackets/${currentYear}`;
-      fetchAPI( apiName, path )
-      .then(response =>
-      {
-         let brackets = [];
-         response.forEach( player =>
-         {
-            if ( !player.brackets || player.brackets.length === 0 )
-            {
-               console.error("Player " + player.player + " has no brackets");
-            }
-            else
-            {
-               player.brackets.forEach((bracket, bracketIndex) =>
-                  brackets.push({
-                     name: player.player,
-                     bracketIndex: bracketIndex,
-                     picks: bracket.picks,
-                     tiebreaker: bracket.tiebreaker,
-                     // The following 3 fields will be populated by calculatePoints.
-                     // Default to nominal values for now.
-                     points: 0,
-                     maxPoints: 0,
-                     superBowlWinner: "N1",
-                     // Temporary
-                     devices: player.devices
-                  })
-               );
-
-               if ( player.devices && player.devices.includes( deviceId ) )
-               {
-                  console.log( "This is player " + player.player + " with device ID " + deviceId );
-               }
-            }
-         });
-
-         setUnprocessedBrackets( brackets );
-         
-         if ( brackets.length === 0 )
-         {
-            setLoadStatus( "No brackets found in group \"" + group + "\"");
-         }
-         else
-         {
-            setLoadStatus( "Processing brackets..." );
-         }
-         })
-      .catch( err => {
-         console.error( err );
-         setLoadStatus( "Error fetching brackets from database" );
-      });
-   }, [ deviceId, newBracketSubmitted, group ] );
-   
    // Update the current games based on the winning picks
    useEffect( ( ) => {
       const newCurrentGames = getCurrentGames( winningPicks );
@@ -128,18 +69,31 @@ function Leaderboard( props )
    }, [ winningPicks ] );
 
    // Update the scores when the brackets, winning entry, or test picks change
-   useEffect( ( ) => {
-      // Use winning entry to calculate scores, but splice in test picks for the current unpicked games
-      let scoreSource = winningPicks;
+   useEffect( ( ) =>
+   {
+      // If the group is unset or there are no brackets, there is nothing to be done
+      if ( !group || allBrackets.length === 0 )
+      {
+         return;
+      }
 
-      // Splice in the test picks
-      scoreSource = winningPicks.substring( 0, currentPicksOffset ) +
-                    testPicks.substring( 0, currentGames.length ) +
-                    winningPicks.substring( currentPicksOffset + currentGames.length );
+      // Use winning entry to calculate scores, but splice in test picks for the current unpicked games
+      let scoreSource = winningPicks.substring( 0, currentPicksOffset ) +
+                        testPicks.substring( 0, currentGames.length ) +
+                        winningPicks.substring( currentPicksOffset + currentGames.length );
+
+      // Get all the brackets in the user's current group
+      let brackets = allBrackets.filter( bracket => ( bracket.group === group ) || ( group === "All" ) );
+
+      if ( !gamesStarted )
+      {
+         // Filter out brackets owned by other people if the games haven't started yet
+         brackets = brackets.filter( bracket => bracket.devices.includes( deviceID ) );
+      }
 
       // Calculate points, sort, and write the brackets to the global variable
-      let brackets = [ ...unprocessedBrackets ];
-      brackets.forEach(bracket => {
+      brackets.forEach(bracket =>
+      {
          const calculatedData = calculatePoints( bracket.picks, scoreSource );
          bracket.points = calculatedData.points;
          bracket.maxPoints = calculatedData.maxPoints;
@@ -147,7 +101,8 @@ function Leaderboard( props )
       });
 
       // Sort first on points won, then points available, then by name, then by bracket index
-      brackets.sort((a, b) => {
+      brackets.sort( ( a, b ) =>
+      {
          if (b.points !== a.points) {
             return b.points - a.points;
          }
@@ -164,11 +119,9 @@ function Leaderboard( props )
 
       // Set brackets and load status
       setBrackets( brackets );
-      if ( brackets.length > 0 )
-      {
-         setLoadStatus( "" );
-      }
-   }, [ unprocessedBrackets, currentGames, currentPicksOffset, testPicks, winningPicks ] );
+      setLoadStatus( ( brackets.length === 0 ) ? `No brackets found in group ${group}` : "" );
+
+   }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID ] );
 
    return (
       <div id="playoff-bracket-leaderboard">
@@ -236,14 +189,11 @@ function Leaderboard( props )
          ? <h2>{ loadStatus }</h2>
          : brackets.map( ( bracket, index ) =>
             <div className="playoff-bracket-leaderboard-entry" 
-               onClick={ ( ) => {
-                  setPicks( bracket.picks );
-                  switchFocus( null, 1 );
-               }}
-               key={index}
+               onClick={ ( ) => { leaderboardEntryClick( bracket ); } }
+               key={ index }
             >
                {/* Entry name */}
-               <h2 className="name">{ bracket.name }{ ( bracket.bracketIndex > 0 ) ? ` (${bracket.bracketIndex + 1})` : "" }</h2>
+               <h2 className="name">{ bracket.name }{ ( bracket.bracketIndex > 0 ) ? ` #${bracket.bracketIndex + 1}` : "" }</h2>
                {/* Score */}
                <h2 className="score" style={{marginTop: 3}}>{ bracket.points }</h2>
                {/* Max score possible*/}

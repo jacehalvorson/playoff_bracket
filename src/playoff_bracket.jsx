@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from 'react-router-dom';
 
 import Leaderboard from "./leaderboard.jsx";
 import Picks from "./picks.jsx";
 import { fetchAPI } from "./api_requests.js";
+import { theme } from './theme.js';
 
 import "./playoff_bracket.css";
-
-import { useSearchParams } from 'react-router-dom';
 
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -14,13 +14,9 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-
-const theme = createTheme({
-   palette: {
-      mode: "dark"
-   },
-});
+import Button from '@mui/material/Button';
+import { ThemeProvider } from '@mui/material/styles';
+import { v7 } from "uuid";
 
 const LEADERBOARD_FOCUS = 0;
 const PICKS_FOCUS = 1;
@@ -29,28 +25,37 @@ const apiName = 'apiplayoffbrackets';
 
 const currentYear = 2025;
 
-function getOrCreateDeviceId( ) 
+function getOrCreateDeviceID( ) 
 {
-   let deviceId = localStorage.getItem( 'deviceId' );
-   if ( !deviceId )
+   // Get device ID from local browser cache
+   let deviceID = localStorage.getItem( 'deviceID' );
+   if ( !deviceID )
    {
-      deviceId = Math.random( ).toString( 36 ).substring( 2, 16 ); // Generate a random string
-      localStorage.setItem('deviceId', deviceId);
+      // Generate a random UUID and store it on local browser cache
+      deviceID = v7( );
+      localStorage.setItem('deviceID', deviceID);
    }
-   return deviceId;
+   return deviceID;
 }
 
 function PlayoffBracket( )
 {
-   // focus is 0 leaderboard and 1 for picks
    const [ focus, setFocus ] = useState( LEADERBOARD_FOCUS );
+   const [ allBrackets, setAllBrackets ] = useState( [ ] );
    const [ picks, setPicks ] = useState( "0000000000000" );
+   const [ tiebreaker, setTiebreaker ] = useState( "" );
    const [ newBracketSubmitted, setNewBracketSubmitted ] = useState( false );
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( { } );
    const [ groups, setGroups ] = useState( [ ] );
    const [ group, setGroup ] = useState( "" );
+   const [ loadStatus, setLoadStatus ] = useState( "Loading brackets..." );
+   const [ currentBracket, setCurrentBracket ] = useState( null );
+   const [ gamesStarted, setGamesStarted ] = useState( false );
+
    const [ searchParams ] = useSearchParams( );
+
+   const deviceID = getOrCreateDeviceID( );
 
    // Update the group based on the URL
    useEffect( ( ) => {
@@ -58,22 +63,28 @@ function PlayoffBracket( )
       let newGroup;
 
       // If the group is null, contains 20+ characters, or contains invalid characters,
-      // default group to "dev"
+      // default group to "All"
       if ( groupParam && /^[A-Za-z0-9!?]{1,20}$/.test( groupParam ) )
       {
          newGroup = groupParam;
+         // Add the new group to the list of groups if it's not already there
+         setGroups( groups => ( groups.includes( newGroup ) )
+            ? groups
+            : [ ...groups, newGroup ]
+         );
       }
       else
       {
          newGroup = "All";
       }
       
-      // Valid group name
       setGroup( newGroup );
+
    }, [ searchParams ] );
    
-   // API call to fetch teams and groups when the page loads
-   useEffect( ( ) => {
+   // API call to fetch teams, brackets, and groups when the page loads
+   useEffect( ( ) =>
+   {
       // Teams
       fetchAPI( apiName, `/teams/${currentYear}` )
       .then( response => {
@@ -96,26 +107,66 @@ function PlayoffBracket( )
             "A6": { name: response.find( item => item.index === "A6" ).value, seed: 6 },
             "A7": { name: response.find( item => item.index === "A7" ).value, seed: 7 }
          } );
+
+         setGamesStarted( parseInt( response.find( item => item.index === "gamesStarted" ).value ) === 1 );
       })
       .catch( e => {
-         console.error( e );
+         console.log( "Error fetching teams: " + e );
+         setLoadStatus( "Error fetching teams" );
       });
 
-      // Groups
+      // Brackets and groups
       fetchAPI( apiName, `/brackets/${currentYear}` )
       .then( response => {
+         // Groups
          const groups = response.map( bracket =>
          {
             const group = bracket.key.substring( 4 );
             return group;
          }).filter( group => /^[A-Za-z0-9!?]{1,20}$/.test( group ) );
 
-         setGroups( [ ...new Set( groups ) ] );
+         setGroups( oldGroups => [ ...new Set( [ ...oldGroups, ...groups ] ) ] );
+
+         // Brackets
+         let brackets = [];
+         response.forEach( player =>
+         {
+            if ( !player.brackets || player.brackets.length === 0 )
+            {
+               console.error("Player " + player.player + " has no brackets");
+            }
+            else
+            {
+               player.brackets.forEach((bracket, bracketIndex) =>
+                  brackets.push({
+                     name: player.player,
+                     group: player.key.substring( 4 ),
+                     bracketIndex: bracketIndex,
+                     picks: bracket.picks,
+                     tiebreaker: bracket.tiebreaker,
+                     // The following 3 fields will be populated by calculatePoints.
+                     // Default to nominal values for now.
+                     points: 0,
+                     maxPoints: 0,
+                     superBowlWinner: "N1",
+                     devices: player.devices
+                  })
+               );
+
+               if ( player.devices && player.devices.includes( deviceID ) )
+               {
+                  console.log( "This is player " + player.player + " with device ID " + deviceID );
+               }
+            }
+         });
+   
+         setAllBrackets( brackets );
       })
       .catch( e => {
-         console.error( e );
+         setLoadStatus( "Error fetching brackets" );
+         console.log( "Error fetching brackets: " + e );
       });
-   }, [ ] );
+   }, [ deviceID, newBracketSubmitted ] );
 
    const switchFocus = (event, newFocus) =>
    {
@@ -134,8 +185,24 @@ function PlayoffBracket( )
       }
    }
 
-   // Get the device ID which is common for a single person.
-   const deviceId = getOrCreateDeviceId( );
+   const addNewGroup = ( ) =>
+   {
+      let newGroup = prompt( "Enter a group name:" );
+      if ( newGroup && /^[A-Za-z0-9!?]{1,20}$/.test( newGroup ) )
+      {
+         setGroups( groups => [ ...groups, newGroup ] );
+         setGroup( newGroup );
+      }
+   }
+
+   const leaderboardEntryClick = ( bracket ) =>
+   {
+      setCurrentBracket( bracket );
+      setPicks( bracket.picks );
+      setTiebreaker( bracket.tiebreaker );
+      setGroup( bracket.group );
+      switchFocus( null, PICKS_FOCUS );
+   }
 
    return (
       <main id="playoff-bracket"><ThemeProvider theme={theme}>
@@ -153,7 +220,10 @@ function PlayoffBracket( )
                   style={{fontSize: "inherit", width: "9em"}}
                   aria-label="leaderboard button"
                >
-                  Leaderboard
+                  {(gamesStarted)
+                     ? "Leaderboard"
+                     : "Brackets"
+                  }
                </ToggleButton>
                <ToggleButton
                   value={1}
@@ -165,44 +235,56 @@ function PlayoffBracket( )
             </ToggleButtonGroup>
          </div>
 
-         <ThemeProvider theme={theme}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-               <FormControl id="group-selection" variant="outlined" sx={{ minWidth: 120 }} size="small">
-                  <InputLabel id="group-selection-input-label" style={{ color: "white" }}>Group</InputLabel>
-                  <Select
-                     id="group-selection-select"
-                     value={ group }
-                     label="Group"
-                     onChange={ ( event ) => setGroup( event.target.value ) }
-                     style={{ color: "white" }}
-                     autoWidth
-                  >
-                     <MenuItem value={"All"}> All </MenuItem>
-                     { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
-                  </Select>
-               </FormControl>
-            </div>
-         </ThemeProvider>
+         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1em" }}>
+            <FormControl id="group-selection" variant="outlined" sx={{ minWidth: 120 }} size="small">
+               <InputLabel id="group-selection-input-label" style={{ color: "white" }}>Group</InputLabel>
+               <Select
+                  id="group-selection-select"
+                  value={ group }
+                  label="Group"
+                  onChange={ ( event ) => setGroup( event.target.value ) }
+                  style={{ color: "white" }}
+                  autoWidth
+               >
+                  <MenuItem value={"All"}> All </MenuItem>
+                  { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
+               </Select>
+            </FormControl>
+            <Button
+               variant="contained"
+               onClick={ addNewGroup }
+            >
+               New
+            </Button>
+         </div>
 
          <div id="playoff-bracket-content" style={{ marginLeft: `${ focus * -100 }vw` }}>
             <Leaderboard
-               deviceId={deviceId}
-               setPicks={setPicks}
                switchFocus={switchFocus}
-               newBracketSubmitted={newBracketSubmitted}
                winningPicks={winningPicks}
                playoffTeams={playoffTeams}
                group={group}
+               allBrackets={allBrackets}
+               loadStatus={loadStatus}
+               setLoadStatus={setLoadStatus}
+               gamesStarted={gamesStarted}
+               deviceID={deviceID}
+               leaderboardEntryClick={leaderboardEntryClick}
             />
             <Picks
-               deviceId={deviceId}
+               deviceID={deviceID}
                currentYear={currentYear}
                picks={picks}
                setPicks={setPicks}
+               tiebreaker={tiebreaker}
+               setTiebreaker={setTiebreaker}
                setNewBracketSubmitted={setNewBracketSubmitted}
                playoffTeams={playoffTeams}
                group={group}
                switchFocus={switchFocus}
+               currentBracket={currentBracket}
+               gamesStarted={gamesStarted}
+               setCurrentBracket={setCurrentBracket}
             />
          </div>
 
@@ -211,4 +293,4 @@ function PlayoffBracket( )
    );
 }
 
-export { PlayoffBracket as default, getOrCreateDeviceId };
+export { PlayoffBracket as default, getOrCreateDeviceID };
