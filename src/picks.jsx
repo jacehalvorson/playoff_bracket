@@ -14,18 +14,20 @@ import "./picks.css";
 function Picks( props )
 {
    const [games, setGames] = useState( emptyGames );
-   const [tiebreaker, setTiebreaker] = useState( "" );
    const [submitStatus, setSubmitStatus] = useState( "" );
 
    const currentYear = props.currentYear
    const deviceID = props.deviceID;
    const picks = props.picks;
    const setPicks = props.setPicks;
+   const tiebreaker = props.tiebreaker;
+   const setTiebreaker = props.setTiebreaker
    const setNewBracketSubmitted = props.setNewBracketSubmitted;
    const playoffTeams = props.playoffTeams;
    const group = props.group;
    const switchFocus = props.switchFocus;
    const currentBracket = props.currentBracket;
+   const setCurrentBracket = props.setCurrentBracket;
    const gamesStarted = props.gamesStarted;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
@@ -44,6 +46,12 @@ function Picks( props )
                      value.toString( ) +
                      picks.substring( index + 1 );
       setPicks( newPicks );
+
+      // If current viewing someone else's bracket, change these picks to a new bracket
+      if ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) )
+      {
+         setCurrentBracket( null );
+      }
    }
 
    // Update all the Wild Card games when the playoff teams or picks change
@@ -52,19 +60,53 @@ function Picks( props )
 
       // Reset the submit status when the picks change
       setSubmitStatus( "" );
-   }, [ picks ] );
+   }, [ picks, playoffTeams ] );
 
    return (
       <div id="playoff-bracket-picks">
-         <h2>
+         <p style={{textAlign: "center", fontSize: "5em", maxWidth: "90vw"}}>
          {
-            ( currentBracket && currentBracket.name )
-               ? ( gamesStarted )
-                  ? "Viewing bracket \"" + currentBracket.name + ( ( currentBracket.bracketIndex > 0 ) ? ` (${currentBracket.bracketIndex + 1})` : "" ) + "\""
-                  : "Editing bracket \"" + currentBracket.name + ( ( currentBracket.bracketIndex > 0 ) ? ` (${currentBracket.bracketIndex + 1})` : "" ) + "\""
-               : "Create New Bracket"
+            ( currentBracket )
+            ? ( currentBracket.devices && currentBracket.devices.includes( deviceID ) )
+               // Player owns this bracket
+               ? ( gamesStarted ?  "Y" : "Edit y" ) + "our " +
+                 ( ( currentBracket.bracketIndex > 0 ) 
+                     ? ( ( currentBracket.bracketIndex + 1 ) +
+                         ( ( currentBracket.bracketIndex + 1 === 1 )
+                           ? "st"
+                           : ( ( currentBracket.bracketIndex + 1 === 2 )
+                              ? "nd"
+                              : ( ( currentBracket.bracketIndex + 1 === 3 )
+                                 ? "rd"
+                                 : "th"
+                                )
+                             )
+                         )
+                       )
+                     : ""
+                 ) +
+                 " bracket"
+               // Another player's bracket
+               : currentBracket.name + "'s " +
+                 ( ( currentBracket.bracketIndex > 0 )
+                      ? ( ( currentBracket.bracketIndex + 1 ) +
+                          ( ( currentBracket.bracketIndex + 1 === 1 )
+                            ? "st"
+                            : ( ( currentBracket.bracketIndex + 1 === 2 )
+                               ? "nd"
+                               : ( ( currentBracket.bracketIndex + 1 === 3 )
+                                  ? "rd"
+                                  : "th"
+                                 )
+                              )
+                          )
+                        )
+                      : ""
+                 )
+                 + " bracket"
+            : "Create New Bracket"
          }
-         </h2>
+         </p>
          <div id="playoff-bracket-wildcard-games">
             <h2>Wild Card Games</h2>
             <div className="playoff-bracket-afc">
@@ -168,7 +210,8 @@ function Picks( props )
 
                   {/* If the input isn't valid don't allow submision */}
                   {( !picks || !/[1-2]{13}$/.test( picks ) ||
-                     !tiebreaker || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 )
+                     !tiebreaker || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
+                     ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) )
 
                         // Picks are not filled out, disable submission
                         ? <Button
@@ -177,9 +220,11 @@ function Picks( props )
                            size="large"
                         >
                         {
-                           ( currentBracket && currentBracket.name )
+                           ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
                               ? "Save"
-                              : "Submit"
+                              : ( currentBracket )
+                                 ? "X"
+                                 : "Submit"
                         }
                         </Button>
 
@@ -193,9 +238,11 @@ function Picks( props )
                               submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
                            }}
                         >
+                        {
                            ( currentBracket && currentBracket.name )
                               ? "Save"
                               : "Submit"
+                        }
                         </Button>
                   }
                </div>

@@ -15,17 +15,15 @@ function Leaderboard( props )
    const [ currentGames, setCurrentGames ] = useState( [ ] );
    const [ testPicks, setTestPicks ] = useState( "000000" );
 
-   const setPicks = props.setPicks;
    const playoffTeams = props.playoffTeams;
    const winningPicks = props.winningPicks;
-   const switchFocus = props.switchFocus;
    const group = props.group;
    const allBrackets = props.allBrackets;
    const loadStatus = props.loadStatus;
    const setLoadStatus = props.setLoadStatus;
-   const setCurrentBracket = props.setCurrentBracket;
    const gamesStarted = props.gamesStarted;
    const deviceID = props.deviceID;
+   const leaderboardEntryClick = props.leaderboardEntryClick;
 
    // Update the current games based on the winning picks
    useEffect( ( ) => {
@@ -125,12 +123,6 @@ function Leaderboard( props )
 
    }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID ] );
 
-   // Wipe current bracket when changing groups
-   useEffect( ( ) =>
-   {
-      setCurrentBracket( null );
-   }, [ group, setCurrentBracket ] );
-
    return (
       <div id="playoff-bracket-leaderboard">
          <div id="playoff-bracket-what-if">
@@ -197,15 +189,11 @@ function Leaderboard( props )
          ? <h2>{ loadStatus }</h2>
          : brackets.map( ( bracket, index ) =>
             <div className="playoff-bracket-leaderboard-entry" 
-               onClick={ ( ) => {
-                  setPicks( bracket.picks );
-                  setCurrentBracket( bracket );
-                  switchFocus( null, 1 );
-               }}
-               key={index}
+               onClick={ ( ) => { leaderboardEntryClick( bracket ); } }
+               key={ index }
             >
                {/* Entry name */}
-               <h2 className="name">{ bracket.name }{ ( bracket.bracketIndex > 0 ) ? ` (${bracket.bracketIndex + 1})` : "" }</h2>
+               <h2 className="name">{ bracket.name }{ ( bracket.bracketIndex > 0 ) ? ` #${bracket.bracketIndex + 1}` : "" }</h2>
                {/* Score */}
                <h2 className="score" style={{marginTop: 3}}>{ bracket.points }</h2>
                {/* Max score possible*/}

@@ -169,6 +169,11 @@
       margin-bottom: 0.2em;
    }
 
+   #playoff-bracket-wildcard-games > .playoff-bracket-afc,
+   #playoff-bracket-wildcard-games > .playoff-bracket-nfc {
+      font-size: 0.98em;
+   }
+
    #playoff-bracket-divisional-games {
       align-items: center;
       justify-content: center;

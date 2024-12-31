@@ -14,6 +14,7 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import Button from '@mui/material/Button';
 import { ThemeProvider } from '@mui/material/styles';
 import { v7 } from "uuid";
 
@@ -42,6 +43,7 @@ function PlayoffBracket( )
    const [ focus, setFocus ] = useState( LEADERBOARD_FOCUS );
    const [ allBrackets, setAllBrackets ] = useState( [ ] );
    const [ picks, setPicks ] = useState( "0000000000000" );
+   const [ tiebreaker, setTiebreaker ] = useState( "" );
    const [ newBracketSubmitted, setNewBracketSubmitted ] = useState( false );
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( { } );
@@ -65,6 +67,11 @@ function PlayoffBracket( )
       if ( groupParam && /^[A-Za-z0-9!?]{1,20}$/.test( groupParam ) )
       {
          newGroup = groupParam;
+         // Add the new group to the list of groups if it's not already there
+         setGroups( groups => ( groups.includes( newGroup ) )
+            ? groups
+            : [ ...groups, newGroup ]
+         );
       }
       else
       {
@@ -118,7 +125,7 @@ function PlayoffBracket( )
             return group;
          }).filter( group => /^[A-Za-z0-9!?]{1,20}$/.test( group ) );
 
-         setGroups( [ ...new Set( groups ) ] );
+         setGroups( oldGroups => [ ...new Set( [ ...oldGroups, ...groups ] ) ] );
 
          // Brackets
          let brackets = [];
@@ -142,7 +149,6 @@ function PlayoffBracket( )
                      points: 0,
                      maxPoints: 0,
                      superBowlWinner: "N1",
-                     // Temporary
                      devices: player.devices
                   })
                );
@@ -179,6 +185,25 @@ function PlayoffBracket( )
       }
    }
 
+   const addNewGroup = ( ) =>
+   {
+      let newGroup = prompt( "Enter a group name:" );
+      if ( newGroup && /^[A-Za-z0-9!?]{1,20}$/.test( newGroup ) )
+      {
+         setGroups( groups => [ ...groups, newGroup ] );
+         setGroup( newGroup );
+      }
+   }
+
+   const leaderboardEntryClick = ( bracket ) =>
+   {
+      setCurrentBracket( bracket );
+      setPicks( bracket.picks );
+      setTiebreaker( bracket.tiebreaker );
+      setGroup( bracket.group );
+      switchFocus( null, PICKS_FOCUS );
+   }
+
    return (
       <main id="playoff-bracket"><ThemeProvider theme={theme}>
          <h1>{ currentYear } Playoff Bracket</h1>
@@ -210,28 +235,31 @@ function PlayoffBracket( )
             </ToggleButtonGroup>
          </div>
 
-         <ThemeProvider theme={theme}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-               <FormControl id="group-selection" variant="outlined" sx={{ minWidth: 120 }} size="small">
-                  <InputLabel id="group-selection-input-label" style={{ color: "white" }}>Group</InputLabel>
-                  <Select
-                     id="group-selection-select"
-                     value={ group }
-                     label="Group"
-                     onChange={ ( event ) => setGroup( event.target.value ) }
-                     style={{ color: "white" }}
-                     autoWidth
-                  >
-                     <MenuItem value={"All"}> All </MenuItem>
-                     { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
-                  </Select>
-               </FormControl>
-            </div>
-         </ThemeProvider>
+         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1em" }}>
+            <FormControl id="group-selection" variant="outlined" sx={{ minWidth: 120 }} size="small">
+               <InputLabel id="group-selection-input-label" style={{ color: "white" }}>Group</InputLabel>
+               <Select
+                  id="group-selection-select"
+                  value={ group }
+                  label="Group"
+                  onChange={ ( event ) => setGroup( event.target.value ) }
+                  style={{ color: "white" }}
+                  autoWidth
+               >
+                  <MenuItem value={"All"}> All </MenuItem>
+                  { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
+               </Select>
+            </FormControl>
+            <Button
+               variant="contained"
+               onClick={ addNewGroup }
+            >
+               New
+            </Button>
+         </div>
 
          <div id="playoff-bracket-content" style={{ marginLeft: `${ focus * -100 }vw` }}>
             <Leaderboard
-               setPicks={setPicks}
                switchFocus={switchFocus}
                winningPicks={winningPicks}
                playoffTeams={playoffTeams}
@@ -239,21 +267,24 @@ function PlayoffBracket( )
                allBrackets={allBrackets}
                loadStatus={loadStatus}
                setLoadStatus={setLoadStatus}
-               setCurrentBracket={setCurrentBracket}
                gamesStarted={gamesStarted}
                deviceID={deviceID}
+               leaderboardEntryClick={leaderboardEntryClick}
             />
             <Picks
                deviceID={deviceID}
                currentYear={currentYear}
                picks={picks}
                setPicks={setPicks}
+               tiebreaker={tiebreaker}
+               setTiebreaker={setTiebreaker}
                setNewBracketSubmitted={setNewBracketSubmitted}
                playoffTeams={playoffTeams}
                group={group}
                switchFocus={switchFocus}
                currentBracket={currentBracket}
                gamesStarted={gamesStarted}
+               setCurrentBracket={setCurrentBracket}
             />
          </div>
 
