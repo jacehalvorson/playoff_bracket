@@ -4,6 +4,22 @@ NFL Playoff Bracket Predictor Web Application.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## API
+
+Endpoint: `https://kyzo51ow4j.execute-api.us-east-2.amazonaws.com/dev`
+
+### Paths
+
+Fetch brackets from a given year or a given group within a year:
+
+- `brackets/{year}`
+- `brackets/{year}/{group}`
+
+Fetch info about an NFL year. This includes playoff teams, winners, and whether the games have started. Indexes are 'N1', 'N2', 'A1', 'A2', etc. for a conference (NFC/AFC) and seed, "winners" and "gamesStarted" are also indexes. "value" holds the results, which is either a team name, a string of picks (e.g., "1112212122100"), or a boolean.
+
+- `teams/{year}`
+- `teams/{year}/{index}`
+
 ## Deployment
 
 AWS Amplify is connected to this repository to build and deploy this web application. When a pull request is merged to `main`, a deployment is automatically scheduled.
