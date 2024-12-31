@@ -6,7 +6,7 @@ const currentYear = 2025;
 
 export default async function submitWinners(setSubmitGame, deviceID)
 {
-    const devices = ["gp5menfyg", "80gagw0", "3jqsmufo9"];
+    const devices = ["gp5menfyg", "80gagw0", "3jqsmufo9", "01941d8b-881f-72d9-bc04-5e92fed37bf1"];
     let validDevice = false;
 
     setSubmitGame("Adding updated games...");

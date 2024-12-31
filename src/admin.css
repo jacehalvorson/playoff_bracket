@@ -6,6 +6,7 @@ main#playoff-bracket-entry {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
+    color: white;
 }
 
     main#playoff-bracket-entry > h1 {
@@ -28,6 +29,9 @@ main#playoff-bracket-entry {
 }
 #white {
     color: white;
+}
+#black {
+    color: black;
 }
 
 #back-button {
