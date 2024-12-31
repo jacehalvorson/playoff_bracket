@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchAPI } from "./api_requests.js";
 import submitWinners from "./submit_winners.js";
-import { getOrCreateDeviceId } from "./playoff_bracket.jsx"
+import { getOrCreateDeviceID } from "./playoff_bracket.jsx"
 import { computeAllGames } from "./bracket_utils.js";
 
 import "./admin.css";
@@ -17,7 +17,7 @@ function Admin( )
     const [scoresStatus, setScoresStatus] = useState( "Loading brackets..." );
 
     // Get the device ID which is common for a single person.
-    const deviceId = getOrCreateDeviceId();
+    const deviceId = getOrCreateDeviceID();
 
     useEffect(() =>
     {
