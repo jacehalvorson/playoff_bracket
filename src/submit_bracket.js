@@ -20,7 +20,8 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
    }
       
    if ( !picks || !tiebreaker ||
-        !/[1-2]{13}$/.test( picks ) ||
+        !/^[1-2]{13}$/.test( picks ) ||
+        !/^[0-9]{1,}$/.test( tiebreaker ) ||
         isNaN( parseInt( tiebreaker ) ) ||
         parseInt( tiebreaker ) < 0 )
    {
@@ -57,10 +58,10 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
       // Prompt for a name and check if it is already in the database
       if (!playerFound)
       {
-         name = prompt( `Enter your Display Name:` );
-         if ( !name )
+         name = prompt( "Enter your Display Name:" );
+         if ( !name || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( name ) )
          {
-            throw Error("Bracket submission cancelled");;
+            throw Error( "Invalid Name \"" + name + "\" - Must be less than 20 of the following characters: A-Za-z0-9 !?/\\'\"[]()_-" );
          }
          brackets = [ bracket ];
          devices = [ deviceId ];
@@ -108,10 +109,7 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
       });
    })
    .catch( err => {
-      if ( err.message !== "Bracket submission cancelled" )
-      {
-         console.error( err );
-      }
+      console.error( err );
       setSubmitStatus( err.message );
    });
 }

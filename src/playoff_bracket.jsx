@@ -18,7 +18,7 @@ import Button from '@mui/material/Button';
 import { ThemeProvider } from '@mui/material/styles';
 import { v7 } from "uuid";
 
-const LEADERBOARD_FOCUS = 0;
+// const LEADERBOARD_FOCUS = 0;
 const PICKS_FOCUS = 1;
 
 const apiName = 'apiplayoffbrackets';
@@ -40,7 +40,7 @@ function getOrCreateDeviceID( )
 
 function PlayoffBracket( )
 {
-   const [ focus, setFocus ] = useState( LEADERBOARD_FOCUS );
+   const [ focus, setFocus ] = useState( PICKS_FOCUS );
    const [ allBrackets, setAllBrackets ] = useState( [ ] );
    const [ picks, setPicks ] = useState( "0000000000000" );
    const [ tiebreaker, setTiebreaker ] = useState( "" );
@@ -52,6 +52,7 @@ function PlayoffBracket( )
    const [ loadStatus, setLoadStatus ] = useState( "Loading brackets..." );
    const [ currentBracket, setCurrentBracket ] = useState( null );
    const [ gamesStarted, setGamesStarted ] = useState( false );
+   const [reloadTiebreaker, setReloadTiebreaker] = useState( false );
 
    const [ searchParams ] = useSearchParams( );
 
@@ -64,7 +65,7 @@ function PlayoffBracket( )
 
       // If the group is null, contains 20+ characters, or contains invalid characters,
       // default group to "All"
-      if ( groupParam && /^[A-Za-z0-9!?]{1,20}$/.test( groupParam ) )
+      if ( groupParam && /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( groupParam ) )
       {
          newGroup = groupParam;
          // Add the new group to the list of groups if it's not already there
@@ -108,7 +109,15 @@ function PlayoffBracket( )
             "A7": { name: response.find( item => item.index === "A7" ).value, seed: 7 }
          } );
 
-         setGamesStarted( parseInt( response.find( item => item.index === "gamesStarted" ).value ) === 1 );
+         let gamesStarted = response.find( item => item.index === "gamesStarted" );
+         if ( gamesStarted && gamesStarted.value && parseInt( gamesStarted.value ) === 1 )
+         {
+            setGamesStarted( true );
+         }
+         else
+         {
+            setGamesStarted( false );
+         }
       })
       .catch( e => {
          console.log( "Error fetching teams: " + e );
@@ -123,7 +132,7 @@ function PlayoffBracket( )
          {
             const group = bracket.key.substring( 4 );
             return group;
-         }).filter( group => /^[A-Za-z0-9!?]{1,20}$/.test( group ) );
+         }).filter( group => /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( group ) );
 
          setGroups( oldGroups => [ ...new Set( [ ...oldGroups, ...groups ] ) ] );
 
@@ -133,7 +142,7 @@ function PlayoffBracket( )
          {
             if ( !player.brackets || player.brackets.length === 0 )
             {
-               console.error("Player " + player.player + " has no brackets");
+               console.log("Player " + player.player + " has no brackets");
             }
             else
             {
@@ -175,23 +184,24 @@ function PlayoffBracket( )
          setFocus( newFocus );
       }
 
-      // Scroll to top if the user switches to picks
-      if ( newFocus === PICKS_FOCUS )
-      {
-         window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-      }
+      // Scroll to top if the user switches screens
+      window.scrollTo({
+         top: 0,
+         behavior: 'smooth'
+      });
    }
 
    const addNewGroup = ( ) =>
    {
       let newGroup = prompt( "Enter a group name:" );
-      if ( newGroup && /^[A-Za-z0-9!?]{1,20}$/.test( newGroup ) )
+      if ( newGroup && /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( newGroup ) )
       {
          setGroups( groups => [ ...groups, newGroup ] );
          setGroup( newGroup );
+      }
+      else
+      {
+         setLoadStatus( "Invalid group name \"" + newGroup + "\" - Must be less than 20 of the following characters: A-Za-z0-9 !?/\\'\"[]()_-" );
       }
    }
 
@@ -200,6 +210,7 @@ function PlayoffBracket( )
       setCurrentBracket( bracket );
       setPicks( bracket.picks );
       setTiebreaker( bracket.tiebreaker );
+      setReloadTiebreaker( oldValue => !oldValue );
       setGroup( bracket.group );
       switchFocus( null, PICKS_FOCUS );
    }
@@ -285,6 +296,7 @@ function PlayoffBracket( )
                currentBracket={currentBracket}
                gamesStarted={gamesStarted}
                setCurrentBracket={setCurrentBracket}
+               reloadTiebreaker={reloadTiebreaker}
             />
          </div>
 

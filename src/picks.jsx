@@ -29,6 +29,7 @@ function Picks( props )
    const currentBracket = props.currentBracket;
    const setCurrentBracket = props.setCurrentBracket;
    const gamesStarted = props.gamesStarted;
+   const reloadTiebreaker = props.reloadTiebreaker;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
    const updatePick = ( index, value ) =>
@@ -203,6 +204,8 @@ function Picks( props )
                      size="small"
                      inputMode="numeric"
                      style={{ marginTop: "1em" }}
+                     defaultValue={tiebreaker}
+                     key={reloadTiebreaker}
                      onChange={( event ) => {
                         setTiebreaker( event.target.value );
                      }}
@@ -210,7 +213,7 @@ function Picks( props )
 
                   {/* If the input isn't valid don't allow submision */}
                   {( !picks || !/[1-2]{13}$/.test( picks ) ||
-                     !tiebreaker || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
+                     !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
                      ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) )
 
                         // Picks are not filled out, disable submission

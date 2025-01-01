@@ -18,7 +18,6 @@ function Admin( )
 
     // Get the device ID which is common for a single person.
     const deviceId = getOrCreateDeviceID();
-
     useEffect(() =>
     {
         fetchAPI( apiName, `/teams/${currentYear}` )
@@ -168,8 +167,8 @@ function Admin( )
             >
                 Update NFL Bracket
             </button>
-
-            <h2>{submitGame}</h2>
+            <h2><span id="red">{submitGame}</span></h2>
+            <h4><span id="black">{deviceId}</span></h4>
         </main>
      );
 }
