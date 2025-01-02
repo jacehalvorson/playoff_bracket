@@ -2,7 +2,7 @@ import { fetchAPI, postAPI } from "./api_requests.js";
 
 const apiName = "apiplayoffbrackets";
 
-export default async function submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus )
+export default async function submitBracket( setSubmitStatus, deviceId, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket )
 {
    let brackets = [ ];
    let devices = [ ];
@@ -15,7 +15,7 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
 
    if ( !group || group === "All" )
    {
-      setSubmitStatus( "Select a group to submit bracket" );
+      setSubmitStatus( "Select a group to submit this bracket" );
       return;
    }
       
@@ -29,7 +29,14 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
       return;
    }
 
-   setSubmitStatus( "Adding bracket to leaderboard..." );
+   if ( currentBracket && currentBracket.bracketIndex >= 0 )
+   {
+      setSubmitStatus( "Saving..." );
+   }
+   else
+   {
+      setSubmitStatus( "Adding bracket to database..." );
+   }
 
    // Check if this player is already in this group
    fetchAPI( apiName, `/brackets/${currentYear}/${group}` )
@@ -39,24 +46,35 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
       {
          if ( ( player.devices && player.devices.includes( deviceId ) )  )
          {
+            // This device has been used by this player before
             playerFound = true;
-            let confirm = window.confirm(`${player.player} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\nDo you want to add another?`);
-            if (!confirm)
-            {
-               throw Error("Bracket submission cancelled");;
-            }
             name = player.player;
             if ( player.brackets.find( entry => entry.picks === bracket.picks && entry.tiebreaker === bracket.tiebreaker ) )
             {
-               throw Error("Bracket is already in database");
+               throw Error( "Bracket is already in database" );
             }
-            brackets = player.brackets.concat( bracket );
+
+            // Check if this is a new bracket or an edit to a previous bracket
+            if ( currentBracket && currentBracket.bracketIndex >= 0 &&
+                 player.brackets && currentBracket.bracketIndex < player.brackets.length )
+            {
+               // Replace bracket at given index
+               brackets = player.brackets
+               brackets[ currentBracket.bracketIndex ] = bracket;
+            }
+            else
+            {
+               // Add new bracket to the end of the list
+               brackets = player.brackets.concat( bracket );
+            }
+
+            // Keep the device list
             devices = player.devices;
          }
       });
 
       // Prompt for a name and check if it is already in the database
-      if (!playerFound)
+      if ( !playerFound )
       {
          name = prompt( "Enter your Display Name:" );
          if ( !name || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( name ) )
@@ -71,9 +89,10 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
          {
             if ( player.player === name )
             {
+               // This player is already in this group, add this device to their list
                playerFound = true;
                let cancel = window.confirm(`${player.name} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the database.\nDo you want to add another?`);
-               if (cancel)
+               if ( cancel )
                {
                   setSubmitStatus( "Bracket not added to database" );
                   return;
@@ -83,7 +102,22 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
                   setSubmitStatus( "Bracket is already in database" );
                   return;
                }
-               brackets = player.brackets.concat( bracket );
+
+               // Check if this is a new bracket or an edit to a previous bracket
+               if ( currentBracket && currentBracket.bracketIndex >= 0 &&
+                    player.brackets && currentBracket.bracketIndex < player.brackets.length )
+               {
+                  // Replace bracket at given index
+                  brackets = player.brackets
+                  brackets[ currentBracket.bracketIndex ] = bracket;
+               }
+               else
+               {
+                  // Add new bracket to the end of the list
+                  brackets = player.brackets.concat( bracket );
+               }
+
+               // Add this new device to the player's list
                devices = player.devices.concat( deviceId );
             }
          });

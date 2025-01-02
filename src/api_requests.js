@@ -2,52 +2,36 @@ import { get, post } from 'aws-amplify/api';
 
 async function fetchAPI( apiName, path )
 {
-   try
+   const restOperation = get(
    {
-      const restOperation = get(
-      {
-         apiName: apiName,
-         path: path
-      });
-      
-      const { body } = await restOperation.response;
-      const response = await body.json();
+      apiName: apiName,
+      path: path
+   });
+   
+   const { body } = await restOperation.response;
+   const response = await body.json();
 
-      return response;
-   }
-   catch (e)
-   {
-      console.log('GET call failed: ', JSON.parse(e.response.body));
-      return e.response;
-   }
+   return response;
 }
 
 async function postAPI( apiName, path, inputBody )
 {
-   try
+   const restOperation = post(
    {
-      const restOperation = post(
-      {
-         apiName: apiName,
-         path: path,
-         options: {
-            headers: {
-               "Content-Type": "application/json"
-            },
-            body: inputBody
-         }
-      });
+      apiName: apiName,
+      path: path,
+      options: {
+         headers: {
+            "Content-Type": "application/json"
+         },
+         body: inputBody
+      }
+   });
 
-      const { body } = await restOperation.response;
-      const response = await body.json();
+   const { body } = await restOperation.response;
+   const response = await body.json();
 
-      return response;
-   }
-   catch (e)
-   {
-      console.log('POST call failed: ', JSON.parse(e.response.body));
-      return e.response;
-   }
+   return response;
 }
 
 export { fetchAPI, postAPI };

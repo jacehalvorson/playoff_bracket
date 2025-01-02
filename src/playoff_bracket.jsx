@@ -33,7 +33,7 @@ function getOrCreateDeviceID( )
    {
       // Generate a random UUID and store it on local browser cache
       deviceID = v7( );
-      localStorage.setItem('deviceID', deviceID);
+      localStorage.setItem( 'deviceID', deviceID );
    }
    return deviceID;
 }
@@ -48,7 +48,7 @@ function PlayoffBracket( )
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( { } );
    const [ groups, setGroups ] = useState( [ ] );
-   const [ group, setGroup ] = useState( "" );
+   const [ group, setGroup ] = useState( ( localStorage.getItem( 'group' ) ) ? localStorage.getItem( 'group' ) : "All" );
    const [ loadStatus, setLoadStatus ] = useState( "Loading brackets..." );
    const [ currentBracket, setCurrentBracket ] = useState( null );
    const [ gamesStarted, setGamesStarted ] = useState( false );
@@ -68,11 +68,20 @@ function PlayoffBracket( )
       if ( groupParam && /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( groupParam ) )
       {
          newGroup = groupParam;
+         
          // Add the new group to the list of groups if it's not already there
          setGroups( groups => ( groups.includes( newGroup ) )
             ? groups
             : [ ...groups, newGroup ]
          );
+
+         // Set this as the default group for the user
+         localStorage.setItem( 'group', newGroup );
+      }
+      else if ( localStorage.getItem( 'group' ) )
+      {
+         // User has a default group
+         newGroup = localStorage.getItem( 'group' );
       }
       else
       {
@@ -253,7 +262,11 @@ function PlayoffBracket( )
                   id="group-selection-select"
                   value={ group }
                   label="Group"
-                  onChange={ ( event ) => setGroup( event.target.value ) }
+                  onChange={ ( event ) =>
+                  {
+                     localStorage.setItem( 'group', event.target.value );
+                     setGroup( event.target.value )
+                  } }
                   style={{ color: "white" }}
                   autoWidth
                >

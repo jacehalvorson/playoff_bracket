@@ -214,39 +214,41 @@ function Picks( props )
                   {/* If the input isn't valid don't allow submision */}
                   {( !picks || !/[1-2]{13}$/.test( picks ) ||
                      !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
-                     ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) )
+                     ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) ||
+                     ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
+                  )
 
-                        // Picks are not filled out, disable submission
-                        ? <Button
-                           id="submit-picks-button"
-                           variant="outlined"
-                           size="large"
-                        >
-                        {
-                           ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
-                              ? "Save"
-                              : ( currentBracket )
-                                 ? "X"
-                                 : "Submit"
-                        }
-                        </Button>
-
-                        // Picks are filled out, allow submission
-                        : <Button
-                           id="submit-picks-button"
-                           variant="contained"
-                           size="large"
-                           onClick={ ( ) =>
-                           {
-                              submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
-                           }}
-                        >
-                        {
-                           ( currentBracket && currentBracket.name )
-                              ? "Save"
+                     // Picks are not filled out, disable submission
+                     ? <Button
+                        id="submit-picks-button"
+                        variant="outlined"
+                        size="large"
+                     >
+                     {
+                        ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
+                           ? "Save"
+                           : ( currentBracket )
+                              ? "X"
                               : "Submit"
-                        }
-                        </Button>
+                     }
+                     </Button>
+
+                     // Picks are filled out, allow submission
+                     : <Button
+                        id="submit-picks-button"
+                        variant="contained"
+                        size="large"
+                        onClick={ ( ) =>
+                        {
+                           submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
+                        }}
+                     >
+                     {
+                        ( currentBracket && currentBracket.name )
+                           ? "Save"
+                           : "Submit"
+                     }
+                     </Button>
                   }
                </div>
                
