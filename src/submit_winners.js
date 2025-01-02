@@ -12,6 +12,7 @@ export default async function submitWinners(setSubmitGame, deviceID)
         "01941ad8-ebcc-7320-8033-fa1ad9260ca5",
         "01942411-a522-74d8-8eb4-78b80ab15851"
     ];
+
     let validDevice = false;
 
     setSubmitGame("Adding updated games...");
