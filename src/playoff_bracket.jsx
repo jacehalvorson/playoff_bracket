@@ -48,7 +48,7 @@ function PlayoffBracket( )
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( { } );
    const [ groups, setGroups ] = useState( [ ] );
-   const [ group, setGroup ] = useState( ( localStorage.getItem( 'group' ) ) ? localStorage.getItem( 'group' ) : "All" );
+   const [ group, setGroup ] = useState( "" );
    const [ loadStatus, setLoadStatus ] = useState( "Loading brackets..." );
    const [ currentBracket, setCurrentBracket ] = useState( null );
    const [ gamesStarted, setGamesStarted ] = useState( false );
@@ -82,6 +82,12 @@ function PlayoffBracket( )
       {
          // User has a default group
          newGroup = localStorage.getItem( 'group' );
+
+         // Add the new group to the list of groups if it's not already there
+         setGroups( groups => ( groups.includes( newGroup ) )
+            ? groups
+            : [ ...groups, newGroup ]
+         );
       }
       else
       {

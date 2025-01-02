@@ -4,13 +4,14 @@ const apiName = "apiplayoffbrackets";
 
 const currentYear = 2025;
 
-export default async function submitWinners(setSubmitGame, deviceID)
+export default async function submitWinners( setSubmitGame, deviceID, index )
 {
     const devices = [
         "01941b07-2017-76b1-94fd-5e6f4b172f0a",
         "01941d8b-881f-72d9-bc04-5e92fed37bf1",
-        "01941ad8-ebcc-7320-8033-fa1ad9260ca5",
-        "01942411-a522-74d8-8eb4-78b80ab15851"
+        "01941ad8-ebcc-7320-8033-fa1ad9260ca5", // Jace PC (main)
+        "01941e6e-0c66-779e-ad3a-3bbb779c3c2a", // Jace phone (main)
+        "019410c4-cfe9-74eb-83e1-7e5407d242c8" // Jace PC (local)
     ];
 
     let validDevice = false;
@@ -34,11 +35,14 @@ export default async function submitWinners(setSubmitGame, deviceID)
 
     let bracketData = {
         year: currentYear,
-        index: "winners",
-        value: document.getElementById("newPicks").value // 1111111111112
+        index: index,
+        value: ( index === "winners" )
+                  ? document.getElementById("newPicks").value // 1111111111112
+                  : document.getElementById("newGamesStarted").value // 0 or 1
     };
 
-    if ( bracketData.value.length !== 13 )
+    if ( ( index === "winners" && bracketData.value.length !== 13 ) ||
+         ( index === "gamesStarted" && bracketData.value !== "0" && bracketData.value !== "1" ) )
     {
         alert("Entering the wrong number of " + bracketData.value + ". Use 13 numbers instead of the used " + bracketData.value.length + " numbers.");
         setSubmitGame("Denied.");
