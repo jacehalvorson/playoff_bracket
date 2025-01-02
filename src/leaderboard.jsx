@@ -165,6 +165,7 @@ function Leaderboard( props )
                      const teamName = playoffTeams[team].name;
                      const isDisabled = ( winningPicks[ currentPicksOffset + gameIndex ] !== "0" ) ? true : false;
                      const style = {
+                        borderWidth: 3,
                         backgroundColor: ( winner === ( teamIndex + 1 ) && nflTeamColors[ teamName ] )
                            ? nflTeamColors[ teamName ]
                            : ""

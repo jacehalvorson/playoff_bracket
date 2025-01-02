@@ -115,13 +115,13 @@ app.get(path + '/:year' + '/:group', async function(req, res) {
   if ( !/^[0-9]{4}$/.test( req.params['year'] ) )
   {
     res.statusCode = 400;
-    res.json({error: 'Invalid year "' + req.params['year'] + '"'});
+    res.json({error: 'Invalid year'});
     return;
   }
-  if ( !/^[A-Za-z0-9!?]{1,20}$/.test( req.params['group'] ) )
+  if ( !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.params['group'] ) )
   {
     res.statusCode = 400;
-    res.json({error: 'Invalid group "' + req.params['group'] + '"'});
+    res.json({error: 'Invalid group'});
     return;
   }
 
@@ -186,6 +186,24 @@ app.put(path, async function(req, res) {
 *************************************/
 
 app.post(path, async function(req, res) {
+  if ( !req.body['key'] || !/^[0-9]{4}$/.test( req.body['key'].substring( 0, 4 ) ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid year'});
+    return;
+  }
+  if ( !req.body['key'] || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.body['key'].substring( 4 ) ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid group'});
+    return;
+  }
+  if ( !req.body['player'] || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.body['player'] ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid player'});
+    return;
+  }
 
   if (userIdPresent) {
     req.body['userId'] = req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH;

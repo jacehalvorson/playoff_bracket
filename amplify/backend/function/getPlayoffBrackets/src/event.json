@@ -1,10 +1,11 @@
 {
-  "httpMethod": "GET",
-  "path": "/brackets/2025/dev",
+  "httpMethod": "POST",
+  "path": "/brackets",
   "queryStringParameters": {
     "limit": "10"
   },
   "headers": {
     "Content-Type": "application/json"
-  }
+  },
+  "body": "{\"key\": \"2025dev\", \"player\": \"<\"}"
 }

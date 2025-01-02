@@ -29,6 +29,7 @@ function Picks( props )
    const currentBracket = props.currentBracket;
    const setCurrentBracket = props.setCurrentBracket;
    const gamesStarted = props.gamesStarted;
+   const reloadTiebreaker = props.reloadTiebreaker;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
    const updatePick = ( index, value ) =>
@@ -203,6 +204,8 @@ function Picks( props )
                      size="small"
                      inputMode="numeric"
                      style={{ marginTop: "1em" }}
+                     defaultValue={tiebreaker}
+                     key={reloadTiebreaker}
                      onChange={( event ) => {
                         setTiebreaker( event.target.value );
                      }}
@@ -210,40 +213,42 @@ function Picks( props )
 
                   {/* If the input isn't valid don't allow submision */}
                   {( !picks || !/[1-2]{13}$/.test( picks ) ||
-                     !tiebreaker || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
-                     ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) )
+                     !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
+                     ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) ||
+                     ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
+                  )
 
-                        // Picks are not filled out, disable submission
-                        ? <Button
-                           id="submit-picks-button"
-                           variant="outlined"
-                           size="large"
-                        >
-                        {
-                           ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
-                              ? "Save"
-                              : ( currentBracket )
-                                 ? "X"
-                                 : "Submit"
-                        }
-                        </Button>
-
-                        // Picks are filled out, allow submission
-                        : <Button
-                           id="submit-picks-button"
-                           variant="contained"
-                           size="large"
-                           onClick={ ( ) =>
-                           {
-                              submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus );
-                           }}
-                        >
-                        {
-                           ( currentBracket && currentBracket.name )
-                              ? "Save"
+                     // Picks are not filled out, disable submission
+                     ? <Button
+                        id="submit-picks-button"
+                        variant="outlined"
+                        size="large"
+                     >
+                     {
+                        ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
+                           ? "Save"
+                           : ( currentBracket )
+                              ? "X"
                               : "Submit"
-                        }
-                        </Button>
+                     }
+                     </Button>
+
+                     // Picks are filled out, allow submission
+                     : <Button
+                        id="submit-picks-button"
+                        variant="contained"
+                        size="large"
+                        onClick={ ( ) =>
+                        {
+                           submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
+                        }}
+                     >
+                     {
+                        ( currentBracket && currentBracket.name )
+                           ? "Save"
+                           : "Submit"
+                     }
+                     </Button>
                   }
                </div>
                
