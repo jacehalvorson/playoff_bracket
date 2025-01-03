@@ -220,14 +220,18 @@ function Picks( props )
                            size="large"
                            onClick={ ( ) =>
                            {
-                              if ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
-                              {
-                                 // Delete bracket
-                              }
-                              else
-                              {
-                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
-                              }
+                              submitBracket(
+                                 setSubmitStatus,
+                                 deviceID,
+                                 picks,
+                                 tiebreaker,
+                                 setNewBracketSubmitted,
+                                 currentYear,
+                                 group,
+                                 switchFocus,
+                                 currentBracket,
+                                 ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
+                              );
                            }}
                         >
                         {
@@ -244,7 +248,7 @@ function Picks( props )
                   }
                </div>
                
-               <h2 id="submit-status" style={{margin: "0.5em", width: "90vw", textAlign: "center"}}>
+               <h2 id="submit-status" style={{margin: "1em", width: "90vw", textAlign: "center"}}>
                   {submitStatus}
                </h2>
             </div>

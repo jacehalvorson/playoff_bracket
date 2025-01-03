@@ -15,7 +15,7 @@
       "function": {
         "getPlayoffBrackets": {
           "deploymentBucketName": "amplify-playoffbracket-dev-c321e-deployment",
-          "s3Key": "amplify-builds/getPlayoffBrackets-67504e4e79674c4c7534-build.zip"
+          "s3Key": "amplify-builds/getPlayoffBrackets-2f32444d6a5a702b4a46-build.zip"
         },
         "getPlayoffTeams": {
           "deploymentBucketName": "amplify-playoffbracket-dev-c321e-deployment",

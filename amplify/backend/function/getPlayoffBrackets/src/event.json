@@ -1,6 +1,6 @@
 {
-  "httpMethod": "POST",
-  "path": "/brackets",
+  "httpMethod": "DELETE",
+  "path": "/brackets/2025/prior/agereas",
   "queryStringParameters": {
     "limit": "10"
   },

@@ -46,7 +46,8 @@ app.use(function(req, res, next) {
 });
 
 // convert url string param to expected Type
-const convertUrlType = (param, type) => {
+const convertUrlType = (param, type) =>
+{
   switch(type) {
     case "N":
       return Number.parseInt(param);
@@ -59,7 +60,8 @@ const convertUrlType = (param, type) => {
 * HTTP Get method to list objects *
 ************************************/
 
-app.get(path, async function(req, res) {
+app.get(path, async function(req, res)
+{
   var params = {
     TableName: tableName,
     Select: 'ALL_ATTRIBUTES'
@@ -78,7 +80,8 @@ app.get(path, async function(req, res) {
  * HTTP Get method to query all objects from a given year *
  ************************************/
 
-app.get(path + '/:year', async function(req, res) {
+app.get(path + '/:year', async function(req, res)
+{
   if ( !/^[0-9]{4}$/.test( req.params['year'] ) )
   {
     res.statusCode = 400;
@@ -111,7 +114,8 @@ app.get(path + '/:year', async function(req, res) {
  * HTTP Get method for all objects within a group within a year *
  *****************************************/
 
-app.get(path + '/:year' + '/:group', async function(req, res) {
+app.get(path + '/:year' + '/:group', async function(req, res)
+{
   if ( !/^[0-9]{4}$/.test( req.params['year'] ) )
   {
     res.statusCode = 400;
@@ -162,8 +166,8 @@ app.get(path + '/:year' + '/:group', async function(req, res) {
 * HTTP put method for insert object *
 *************************************/
 
-app.put(path, async function(req, res) {
-
+app.put(path, async function(req, res)
+{
   if (userIdPresent) {
     req.body['userId'] = req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH;
   }
@@ -185,7 +189,8 @@ app.put(path, async function(req, res) {
 * HTTP post method for insert object *
 *************************************/
 
-app.post(path, async function(req, res) {
+app.post(path, async function(req, res)
+{
   if ( !req.body['key'] || !/^[0-9]{4}$/.test( req.body['key'].substring( 0, 4 ) ) )
   {
     res.statusCode = 400;
@@ -226,14 +231,35 @@ app.post(path, async function(req, res) {
 * HTTP remove method to delete object *
 ***************************************/
 
-app.delete(path + hashKeyPath + sortKeyPath, async function(req, res) {
+app.delete(path + '/:year' + '/:group' + '/:player', async function(req, res)
+{
   const params = {};
+
+  if ( !req.params['year'] || !/^[0-9]{4}$/.test( req.params['year'] ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid year'});
+    return;
+  }
+  if ( !req.params['group'] || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.params['group'] ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid group'});
+    return;
+  }
+  if ( !req.params['player'] || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.params['player'] ) )
+  {
+    res.statusCode = 400;
+    res.json({error: 'Invalid player'});
+    return;
+  }
+
   if (userIdPresent && req.apiGateway) {
     params[partitionKeyName] = req.apiGateway.event.requestContext.identity.cognitoIdentityId || UNAUTH;
   } else {
-    params[partitionKeyName] = req.params[partitionKeyName];
+    params[partitionKeyName] = req.params['year'] + req.params['group'];
      try {
-      params[partitionKeyName] = convertUrlType(req.params[partitionKeyName], partitionKeyType);
+      params[partitionKeyName] = convertUrlType(req.params['year'] + req.params['group'], partitionKeyType);
     } catch(err) {
       res.statusCode = 500;
       res.json({error: 'Wrong column type ' + err});
@@ -241,7 +267,7 @@ app.delete(path + hashKeyPath + sortKeyPath, async function(req, res) {
   }
   if (hasSortKey) {
     try {
-      params[sortKeyName] = convertUrlType(req.params[sortKeyName], sortKeyType);
+      params[sortKeyName] = convertUrlType(req.params['player'], sortKeyType);
     } catch(err) {
       res.statusCode = 500;
       res.json({error: 'Wrong column type ' + err});

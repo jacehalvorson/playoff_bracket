@@ -170,23 +170,22 @@ function PlayoffBracket( )
                      bracketIndex: bracketIndex,
                      picks: bracket.picks,
                      tiebreaker: bracket.tiebreaker,
+                     devices: player.devices,
                      // The following 3 fields will be populated by calculatePoints.
                      // Default to nominal values for now.
                      points: 0,
                      maxPoints: 0,
-                     superBowlWinner: "N1",
-                     devices: player.devices
+                     superBowlWinner: "N1"
                   })
                );
-
-               if ( player.devices && player.devices.includes( deviceID ) )
-               {
-                  console.log( "This is player " + player.player + " with device ID " + deviceID );
-               }
             }
          });
    
          setAllBrackets( brackets );
+         setCurrentBracket( null );
+         setPicks( "0000000000000" );
+         setTiebreaker( "" );
+         setReloadTiebreaker( oldValue => !oldValue );
       })
       .catch( e => {
          setLoadStatus( "Error fetching brackets" );
