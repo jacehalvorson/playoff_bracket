@@ -63,8 +63,7 @@ function PlayoffBracket( )
       const groupParam = searchParams.get( "group" );
       let newGroup;
 
-      // If the group is null, contains 20+ characters, or contains invalid characters,
-      // default group to "All"
+      // Look for a group in the user's URL
       if ( groupParam && /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( groupParam ) )
       {
          newGroup = groupParam;
@@ -78,6 +77,7 @@ function PlayoffBracket( )
          // Set this as the default group for the user
          localStorage.setItem( 'group', newGroup );
       }
+      // Look for the group the user last selected
       else if ( localStorage.getItem( 'group' ) )
       {
          // User has a default group
@@ -89,6 +89,7 @@ function PlayoffBracket( )
             : [ ...groups, newGroup ]
          );
       }
+      // Default to all
       else
       {
          newGroup = "All";
@@ -275,7 +276,10 @@ function PlayoffBracket( )
                   label="Group"
                   onChange={ ( event ) =>
                   {
-                     localStorage.setItem( 'group', event.target.value );
+                     if ( event.target.value && event.target.value !== "All" )
+                     {
+                        localStorage.setItem( 'group', event.target.value );
+                     }
                      setGroup( event.target.value )
                   } }
                   style={{ color: "white" }}

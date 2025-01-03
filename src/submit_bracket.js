@@ -19,23 +19,21 @@ export default async function submitBracket( setSubmitStatus, deviceId, picks, t
       return;
    }
       
-   if ( !picks || !tiebreaker ||
-        !/^[1-2]{13}$/.test( picks ) ||
-        !/^[0-9]{1,}$/.test( tiebreaker ) ||
-        isNaN( parseInt( tiebreaker ) ) ||
-        parseInt( tiebreaker ) < 0 )
+   if ( !picks || !/^[1-2]{13}$/.test( picks ) )
    {
-      setSubmitStatus( "Invalid input" );
+      setSubmitStatus( "Invalid picks" );
+      return;
+   }
+
+   if ( !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || parseInt( tiebreaker ) < 0 )
+   {
+      setSubmitStatus( "Invalid tiebreaker (total score)" );
       return;
    }
 
    if ( currentBracket && currentBracket.bracketIndex >= 0 )
    {
-      setSubmitStatus( "Saving..." );
-   }
-   else
-   {
-      setSubmitStatus( "Adding bracket to database..." );
+      setSubmitStatus( ( currentBracket && currentBracket.bracketIndex >= 0 ) ? "Saving..." : "Adding bracket to database..." );
    }
 
    // Check if this player is already in this group
