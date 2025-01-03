@@ -1,6 +1,6 @@
-import { get, post } from 'aws-amplify/api';
+import { get, post, del } from 'aws-amplify/api';
 
-async function fetchAPI( apiName, path )
+export async function fetchAPI( apiName, path )
 {
    const restOperation = get(
    {
@@ -14,7 +14,7 @@ async function fetchAPI( apiName, path )
    return response;
 }
 
-async function postAPI( apiName, path, inputBody )
+export async function postAPI( apiName, path, inputBody )
 {
    const restOperation = post(
    {
@@ -34,4 +34,16 @@ async function postAPI( apiName, path, inputBody )
    return response;
 }
 
-export { fetchAPI, postAPI };
+export async function deleteAPI( apiName, path )
+{
+   const restOperation = del(
+   {
+      apiName: apiName,
+      path: path
+   });
+
+   const { body } = await restOperation.response;
+   const response = await body.json();
+
+   return response;
+}

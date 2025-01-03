@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 import { computeAllGames, emptyGames, nflTeamColors } from "./bracket_utils.js"
-import submitBracket from "./submit_bracket.js";
+import { submitBracket, deleteBracket } from "./submit_bracket.js";
 
 import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -220,18 +220,16 @@ function Picks( props )
                            size="large"
                            onClick={ ( ) =>
                            {
-                              submitBracket(
-                                 setSubmitStatus,
-                                 deviceID,
-                                 picks,
-                                 tiebreaker,
-                                 setNewBracketSubmitted,
-                                 currentYear,
-                                 group,
-                                 switchFocus,
-                                 currentBracket,
-                                 ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
-                              );
+                              if ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
+                              {
+                                 // This button is a Delete button, delete the bracket
+                                 deleteBracket( setSubmitStatus, deviceID, setNewBracketSubmitted, currentYear, switchFocus, currentBracket );
+                              }
+                              else
+                              {
+                                 // This button is a Submit/Save button, submit/save the bracket
+                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
+                              }
                            }}
                         >
                         {
