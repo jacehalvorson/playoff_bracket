@@ -10,7 +10,6 @@ import TextField from '@mui/material/TextField';
 
 import "./picks.css";
 
-
 function Picks( props )
 {
    const [games, setGames] = useState( emptyGames );
@@ -38,6 +37,11 @@ function Picks( props )
            isNaN( Number( value ) ) || Number( value ) < 0 || Number( value ) > 2 )
       {
          console.error( "Cannot update pick " + index + " with value " + value );
+         return;
+      }
+      if ( gamesStarted )
+      {
+         // If the games have started, don't allow picks to be changed but don't give an error
          return;
       }
 
@@ -72,40 +76,20 @@ function Picks( props )
                // Player owns this bracket
                ? ( gamesStarted ?  "Y" : "Edit y" ) + "our " +
                  ( ( currentBracket.bracketIndex > 0 ) 
-                     ? ( ( currentBracket.bracketIndex + 1 ) +
-                         ( ( currentBracket.bracketIndex + 1 === 1 )
-                           ? "st"
-                           : ( ( currentBracket.bracketIndex + 1 === 2 )
-                              ? "nd"
-                              : ( ( currentBracket.bracketIndex + 1 === 3 )
-                                 ? "rd"
-                                 : "th"
-                                )
-                             )
-                         )
-                       )
+                     ? ( currentBracket.bracketIndex + 1 ) + getSuffix( currentBracket.bracketIndex + 1 ) + " "
                      : ""
-                 ) +
-                 " bracket"
+                  ) +
+                 "bracket"
                // Another player's bracket
                : currentBracket.name + "'s " +
                  ( ( currentBracket.bracketIndex > 0 )
-                      ? ( ( currentBracket.bracketIndex + 1 ) +
-                          ( ( currentBracket.bracketIndex + 1 === 1 )
-                            ? "st"
-                            : ( ( currentBracket.bracketIndex + 1 === 2 )
-                               ? "nd"
-                               : ( ( currentBracket.bracketIndex + 1 === 3 )
-                                  ? "rd"
-                                  : "th"
-                                 )
-                              )
-                          )
-                        )
-                      : ""
-                 )
-                 + " bracket"
-            : "Create New Bracket"
+                     ? ( currentBracket.bracketIndex + 1 ) + getSuffix( currentBracket.bracketIndex + 1 ) + " "
+                     : ""
+                  ) +
+                 "bracket"
+            : ( gamesStarted )
+               ? ""
+               : "Create New Bracket"
          }
          </p>
          <div id="playoff-bracket-wildcard-games">
@@ -202,54 +186,65 @@ function Picks( props )
                      id="tiebreaker-input"
                      variant="outlined"
                      size="small"
-                     inputMode="numeric"
+                     inputmode="decimal"
+                     pattern="[0-9]*"
+                     type="tel"
                      style={{ marginTop: "1em" }}
                      defaultValue={tiebreaker}
                      key={reloadTiebreaker}
+                     locked={gamesStarted}
                      onChange={( event ) => {
                         setTiebreaker( event.target.value );
                      }}
+                     disabled={gamesStarted}
                   />
 
-                  {/* If the input isn't valid don't allow submision */}
-                  {( !picks || !/[1-2]{13}$/.test( picks ) ||
-                     !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
-                     ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) ||
-                     ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
-                  )
+                  {/* If the games have started, don't show a submit button */}
+                  {( gamesStarted )
+                     ? <></>
+                     // If the input isn't valid don't allow submission
+                     : ( !picks || !/[1-2]{13}$/.test( picks ) ||
+                        !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
+                        ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) ||
+                        ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker ) ||
+                        gamesStarted
+                     )
 
-                     // Picks are not filled out, disable submission
-                     ? <Button
-                        id="submit-picks-button"
-                        variant="outlined"
-                        size="large"
-                     >
-                     {
-                        ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
-                           ? "Save"
-                           : ( currentBracket )
-                              ? "X"
-                              : "Submit"
-                     }
-                     </Button>
-
-                     // Picks are filled out, allow submission
-                     : <Button
-                        id="submit-picks-button"
-                        variant="contained"
-                        size="large"
-                        onClick={ ( ) =>
+                        // Picks are not filled out, disable submission
+                        ? <Button
+                           id="submit-picks-button"
+                           variant="outlined"
+                           size="large"
+                        >
                         {
-                           submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
-                        }}
-                     >
-                     {
-                        ( currentBracket && currentBracket.name )
-                           ? "Save"
-                           : "Submit"
+                           ( currentBracket || gamesStarted )
+                              ? "X"
+                              : ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
+                                 ? "Save"
+                                 : "Submit"
+                        }
+                        </Button>
+
+                        // Picks are filled out, allow submission
+                        : <Button
+                           id="submit-picks-button"
+                           variant="contained"
+                           size="large"
+                           onClick={ ( ) =>
+                           {
+                              if ( !gamesStarted )
+                              {
+                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
+                              }
+                           }}
+                        >
+                        {
+                           ( currentBracket && currentBracket.name )
+                              ? "Save"
+                              : "Submit"
+                        }
+                        </Button>
                      }
-                     </Button>
-                  }
                </div>
                
                <h2 id="submit-status" style={{margin: "0.5em", width: "90vw", textAlign: "center"}}>{submitStatus}</h2>
@@ -325,6 +320,27 @@ function PlayoffBracketGame( props )
          })}
       </ToggleButtonGroup>
    )
+}
+
+// Function to find the correct suffix for a number based on its last digit
+function getSuffix( number )
+{
+   if ( number % 10 === 1 )
+   {
+      return "st";
+   }
+   else if ( number % 10 === 2 )
+   {
+      return "nd";
+   }
+   else if ( number % 10 === 3 )
+   {
+      return "rd";
+   }
+   else
+   {
+      return "th";
+   }
 }
 
 export default Picks;

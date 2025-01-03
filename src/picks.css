@@ -143,6 +143,13 @@
    text-align: center;
 }
 
+/* Avoid the numbers that appear with input mode="number" */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+   -webkit-appearance: none;
+   margin: 0;
+}
+
 /* Mobile Styles */
 @media screen and ( max-width: 768px ) {
    #playoff-bracket-picks {
