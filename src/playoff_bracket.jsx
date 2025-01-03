@@ -210,15 +210,19 @@ function PlayoffBracket( )
    const addNewGroup = ( ) =>
    {
       let newGroup = prompt( "Enter a group name:" );
-      if ( newGroup && /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( newGroup ) )
+      if ( !newGroup )
       {
-         setGroups( groups => [ ...groups, newGroup ] );
-         setGroup( newGroup );
+         // User cancelled, return with no error
+         return;
       }
-      else
+      else if ( !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( newGroup ) )
       {
          setLoadStatus( "Invalid group name \"" + newGroup + "\" - Must be less than 20 of the following characters: A-Za-z0-9 !?/\\'\"[]()_-" );
+         return;
       }
+
+      setGroups( groups => [ ...groups, newGroup ] );
+      setGroup( newGroup );
    }
 
    const leaderboardEntryClick = ( bracket ) =>
@@ -281,12 +285,15 @@ function PlayoffBracket( )
                   { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
                </Select>
             </FormControl>
-            <Button
-               variant="contained"
-               onClick={ addNewGroup }
-            >
-               New
-            </Button>
+            {( gamesStarted )
+               ? <></>
+               : <Button
+                  variant="contained"
+                  onClick={ addNewGroup }
+                 >
+                  New
+               </Button>
+            }
          </div>
 
          <div id="playoff-bracket-content" style={{ marginLeft: `${ focus * -100 }vw` }}>

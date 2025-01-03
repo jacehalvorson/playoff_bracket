@@ -40,6 +40,11 @@ function Picks( props )
          console.error( "Cannot update pick " + index + " with value " + value );
          return;
       }
+      if ( gamesStarted )
+      {
+         // If the games have started, don't allow picks to be changed but don't give an error
+         return;
+      }
 
       // Take the existing picks before and after the index, but replace to value at the index
       // e.g., "1121" + "2" + "00000000"
@@ -105,7 +110,9 @@ function Picks( props )
                       : ""
                  )
                  + " bracket"
-            : "Create New Bracket"
+            : ( gamesStarted )
+               ? ""
+               : "Create New Bracket"
          }
          </p>
          <div id="playoff-bracket-wildcard-games">
@@ -211,45 +218,52 @@ function Picks( props )
                      }}
                   />
 
-                  {/* If the input isn't valid don't allow submision */}
-                  {( !picks || !/[1-2]{13}$/.test( picks ) ||
-                     !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
-                     ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) ||
-                     ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
-                  )
+                  {/* If the games have started, don't show a submit button */}
+                  {( gamesStarted )
+                     ? <></>
+                     // If the input isn't valid don't allow submission
+                     : ( !picks || !/[1-2]{13}$/.test( picks ) ||
+                        !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
+                        ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) ||
+                        ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker ) ||
+                        gamesStarted
+                     )
 
-                     // Picks are not filled out, disable submission
-                     ? <Button
-                        id="submit-picks-button"
-                        variant="outlined"
-                        size="large"
-                     >
-                     {
-                        ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
-                           ? "Save"
-                           : ( currentBracket )
-                              ? "X"
-                              : "Submit"
-                     }
-                     </Button>
-
-                     // Picks are filled out, allow submission
-                     : <Button
-                        id="submit-picks-button"
-                        variant="contained"
-                        size="large"
-                        onClick={ ( ) =>
+                        // Picks are not filled out, disable submission
+                        ? <Button
+                           id="submit-picks-button"
+                           variant="outlined"
+                           size="large"
+                        >
                         {
-                           submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
-                        }}
-                     >
-                     {
-                        ( currentBracket && currentBracket.name )
-                           ? "Save"
-                           : "Submit"
+                           ( currentBracket || gamesStarted )
+                              ? "X"
+                              : ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
+                                 ? "Save"
+                                 : "Submit"
+                        }
+                        </Button>
+
+                        // Picks are filled out, allow submission
+                        : <Button
+                           id="submit-picks-button"
+                           variant="contained"
+                           size="large"
+                           onClick={ ( ) =>
+                           {
+                              if ( !gamesStarted )
+                              {
+                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
+                              }
+                           }}
+                        >
+                        {
+                           ( currentBracket && currentBracket.name )
+                              ? "Save"
+                              : "Submit"
+                        }
+                        </Button>
                      }
-                     </Button>
-                  }
                </div>
                
                <h2 id="submit-status" style={{margin: "0.5em", width: "90vw", textAlign: "center"}}>{submitStatus}</h2>
