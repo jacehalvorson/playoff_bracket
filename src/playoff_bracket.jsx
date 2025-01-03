@@ -18,7 +18,7 @@ import Button from '@mui/material/Button';
 import { ThemeProvider } from '@mui/material/styles';
 import { v7 } from "uuid";
 
-// const LEADERBOARD_FOCUS = 0;
+const LEADERBOARD_FOCUS = 0;
 const PICKS_FOCUS = 1;
 
 const apiName = 'apiplayoffbrackets';
@@ -128,6 +128,7 @@ function PlayoffBracket( )
          if ( gamesStarted && gamesStarted.value && parseInt( gamesStarted.value ) === 1 )
          {
             setGamesStarted( true );
+            switchFocus( null, LEADERBOARD_FOCUS );
          }
          else
          {

@@ -1,7 +1,7 @@
 #playoff-bracket-leaderboard {
    position: relative;
    margin-bottom: 10em;
-   width: calc( 100vw - ( 100vw - 100% ) );
+   width: 100%;
 
    display: flex;
    flex-direction: column;
@@ -16,7 +16,7 @@
 }
 
 #playoff-bracket-what-if {
-   height: 8em;
+   min-height: 8em;
    margin-bottom: 1em;
    border-radius: 0.3em;
    padding: 0.2em;
@@ -33,7 +33,8 @@
 }
 
 .playoff-bracket-what-if-button {
-   height: 50%;
+   height: 6em;
+   width: clamp(20px, 12vw, 80px);
 
    display: flex;
    align-items: center;
@@ -41,14 +42,16 @@
 }
 
 .playoff-bracket-what-if-button > img {
-   width: 2.5em;
+   width: clamp(20px, 7vw, 50px);
 }
 
 .playoff-bracket-leaderboard-entry {
+   position: relative;
    width: clamp(18em, 85vw, 60em);
    border: 1px solid rgba(255, 255, 255, 0.2);
    border-radius: 0.8em;
    background-color: black;
+   cursor: pointer;
 
    display: grid;
    grid-template-columns: 1fr 1fr 1fr;
@@ -135,12 +138,8 @@
       margin-top: 0.3em;
    }
 
-   #playoff-bracket-what-if {
-      height: 13em;
-   }
-
-   .playoff-bracket-what-if-button > img {
-      width: 2em;
+   .playoff-bracket-what-if-button {
+      height: clamp(1px, 12vw, 100px);
    }
 
    #playoff-bracket-leaderboard > h2 {
