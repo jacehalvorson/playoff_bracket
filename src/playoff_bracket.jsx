@@ -63,8 +63,7 @@ function PlayoffBracket( )
       const groupParam = searchParams.get( "group" );
       let newGroup;
 
-      // If the group is null, contains 20+ characters, or contains invalid characters,
-      // default group to "All"
+      // Look for a group in the user's URL
       if ( groupParam && /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( groupParam ) )
       {
          newGroup = groupParam;
@@ -78,6 +77,7 @@ function PlayoffBracket( )
          // Set this as the default group for the user
          localStorage.setItem( 'group', newGroup );
       }
+      // Look for the group the user last selected
       else if ( localStorage.getItem( 'group' ) )
       {
          // User has a default group
@@ -89,6 +89,7 @@ function PlayoffBracket( )
             : [ ...groups, newGroup ]
          );
       }
+      // Default to all
       else
       {
          newGroup = "All";
@@ -169,23 +170,22 @@ function PlayoffBracket( )
                      bracketIndex: bracketIndex,
                      picks: bracket.picks,
                      tiebreaker: bracket.tiebreaker,
+                     devices: player.devices,
                      // The following 3 fields will be populated by calculatePoints.
                      // Default to nominal values for now.
                      points: 0,
                      maxPoints: 0,
-                     superBowlWinner: "N1",
-                     devices: player.devices
+                     superBowlWinner: "N1"
                   })
                );
-
-               if ( player.devices && player.devices.includes( deviceID ) )
-               {
-                  console.log( "This is player " + player.player + " with device ID " + deviceID );
-               }
             }
          });
    
          setAllBrackets( brackets );
+         setCurrentBracket( null );
+         setPicks( "0000000000000" );
+         setTiebreaker( "" );
+         setReloadTiebreaker( oldValue => !oldValue );
       })
       .catch( e => {
          setLoadStatus( "Error fetching brackets" );
@@ -275,7 +275,10 @@ function PlayoffBracket( )
                   label="Group"
                   onChange={ ( event ) =>
                   {
-                     localStorage.setItem( 'group', event.target.value );
+                     if ( event.target.value && event.target.value !== "All" )
+                     {
+                        localStorage.setItem( 'group', event.target.value );
+                     }
                      setGroup( event.target.value )
                   } }
                   style={{ color: "white" }}

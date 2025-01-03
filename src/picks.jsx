@@ -186,13 +186,12 @@ function Picks( props )
                      id="tiebreaker-input"
                      variant="outlined"
                      size="small"
-                     inputmode="decimal"
+                     inputMode="decimal"
                      pattern="[0-9]*"
                      type="tel"
                      style={{ marginTop: "1em" }}
                      defaultValue={tiebreaker}
                      key={reloadTiebreaker}
-                     locked={gamesStarted}
                      onChange={( event ) => {
                         setTiebreaker( event.target.value );
                      }}
@@ -202,52 +201,56 @@ function Picks( props )
                   {/* If the games have started, don't show a submit button */}
                   {( gamesStarted )
                      ? <></>
-                     // If the input isn't valid don't allow submission
-                     : ( !picks || !/[1-2]{13}$/.test( picks ) ||
-                        !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || tiebreaker < 0 ||
-                        ( currentBracket && currentBracket.devices && !currentBracket.devices.includes( deviceID ) ) ||
-                        ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker ) ||
-                        gamesStarted
-                     )
-
-                        // Picks are not filled out, disable submission
-                        ? <Button
-                           id="submit-picks-button"
-                           variant="outlined"
-                           size="large"
-                        >
-                        {
-                           ( currentBracket || gamesStarted )
-                              ? "X"
-                              : ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) )
-                                 ? "Save"
-                                 : "Submit"
-                        }
-                        </Button>
-
-                        // Picks are filled out, allow submission
-                        : <Button
+                     : <Button
                            id="submit-picks-button"
                            variant="contained"
+                           disabled=
+                           {(
+                              // If the input isn't valid don't allow submission
+                              !picks || !/^[1-2]{13}$/.test( picks ) ||
+                              !tiebreaker || !/^[0-9]{1,}$/.test( tiebreaker ) || isNaN( parseInt( tiebreaker ) ) || parseInt( tiebreaker ) < 0
+                           )}
+                           color=
+                           {
+                              // If the user hasn't changed anything, show a red delete option
+                              ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
+                                 ? "error"
+                                 : "primary"
+                           }
                            size="large"
                            onClick={ ( ) =>
                            {
-                              if ( !gamesStarted )
-                              {
-                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
-                              }
+                              submitBracket(
+                                 setSubmitStatus,
+                                 deviceID,
+                                 picks,
+                                 tiebreaker,
+                                 setNewBracketSubmitted,
+                                 currentYear,
+                                 group,
+                                 switchFocus,
+                                 currentBracket,
+                                 ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
+                              );
                            }}
                         >
                         {
-                           ( currentBracket && currentBracket.name )
-                              ? "Save"
-                              : "Submit"
+                           // If no bracket is selected, show "Submit"
+                           ( !currentBracket || !currentBracket.devices )
+                              ? "Submit"
+                              // If the user hasn't changed anything, show a delete option
+                              : ( currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
+                                 ? "Delete"
+                                 // Otherwise, show "Save" (user has made changes to their selected bracket)
+                                 : "Save"
                         }
-                        </Button>
-                     }
+                     </Button>
+                  }
                </div>
                
-               <h2 id="submit-status" style={{margin: "0.5em", width: "90vw", textAlign: "center"}}>{submitStatus}</h2>
+               <h2 id="submit-status" style={{margin: "1em", width: "90vw", textAlign: "center"}}>
+                  {submitStatus}
+               </h2>
             </div>
          </div>
       </div>
