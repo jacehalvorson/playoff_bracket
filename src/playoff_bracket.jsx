@@ -60,11 +60,12 @@ function PlayoffBracket( )
 
    // Update the group based on the URL
    useEffect( ( ) => {
-      const groupParam = searchParams.get( "group" );
       let newGroup;
+      const groupParam = searchParams.get( "group" );
+      const lastGroup = localStorage.getItem( 'group' );
 
       // Look for a group in the user's URL
-      if ( groupParam && /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( groupParam ) )
+      if ( groupParam && /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( groupParam ) && groupParam !== "All" )
       {
          newGroup = groupParam;
          
@@ -78,10 +79,10 @@ function PlayoffBracket( )
          localStorage.setItem( 'group', newGroup );
       }
       // Look for the group the user last selected
-      else if ( localStorage.getItem( 'group' ) )
+      else if ( lastGroup && /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( lastGroup ) && lastGroup !== "All" )
       {
          // User has a default group
-         newGroup = localStorage.getItem( 'group' );
+         newGroup = lastGroup;
 
          // Add the new group to the list of groups if it's not already there
          setGroups( groups => ( groups.includes( newGroup ) )
@@ -149,7 +150,7 @@ function PlayoffBracket( )
          {
             const group = bracket.key.substring( 4 );
             return group;
-         }).filter( group => /^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( group ) );
+         }).filter( group => /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( group ) );
 
          setGroups( oldGroups => [ ...new Set( [ ...oldGroups, ...groups ] ) ] );
 
@@ -215,14 +216,15 @@ function PlayoffBracket( )
          // User cancelled, return with no error
          return;
       }
-      else if ( !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( newGroup ) )
+      else if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( newGroup ) )
       {
-         setLoadStatus( "Invalid group name \"" + newGroup + "\" - Must be less than 20 of the following characters: A-Za-z0-9 !?/\\'\"[]()_-" );
+         setLoadStatus( "Invalid group name \"" + newGroup + "\" - Must be less than 20 of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
          return;
       }
 
       setGroups( groups => [ ...groups, newGroup ] );
       setGroup( newGroup );
+      localStorage.setItem( 'group', newGroup );
    }
 
    const leaderboardEntryClick = ( bracket ) =>
@@ -275,10 +277,7 @@ function PlayoffBracket( )
                   label="Group"
                   onChange={ ( event ) =>
                   {
-                     if ( event.target.value && event.target.value !== "All" )
-                     {
-                        localStorage.setItem( 'group', event.target.value );
-                     }
+                     localStorage.setItem( 'group', event.target.value );
                      setGroup( event.target.value )
                   } }
                   style={{ color: "white" }}

@@ -119,8 +119,19 @@ function Leaderboard( props )
 
       // Set brackets and load status
       setBrackets( brackets );
-      setLoadStatus( ( brackets.length === 0 ) ? `No brackets found in group ${group}` : "" );
 
+      if ( brackets.length > 0 )
+      {
+         setLoadStatus( "" );
+      }
+      else if ( gamesStarted )
+      {
+         setLoadStatus ( "No brackets found" + ( ( group !== "All" ) ? ` in group ${group}` : "" ) );
+      }
+      else
+      {
+         setLoadStatus( "You don't have any brackets" + ( group !== "All" ? ` in group '${group}'` : "" ) + ". Use the 'Picks' button to create one." );
+      }
    }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID ] );
 
    return (
