@@ -10,7 +10,6 @@ import TextField from '@mui/material/TextField';
 
 import "./picks.css";
 
-
 function Picks( props )
 {
    const [games, setGames] = useState( emptyGames );
@@ -77,39 +76,17 @@ function Picks( props )
                // Player owns this bracket
                ? ( gamesStarted ?  "Y" : "Edit y" ) + "our " +
                  ( ( currentBracket.bracketIndex > 0 ) 
-                     ? ( ( currentBracket.bracketIndex + 1 ) +
-                         ( ( currentBracket.bracketIndex + 1 === 1 )
-                           ? "st"
-                           : ( ( currentBracket.bracketIndex + 1 === 2 )
-                              ? "nd"
-                              : ( ( currentBracket.bracketIndex + 1 === 3 )
-                                 ? "rd"
-                                 : "th"
-                                )
-                             )
-                         )
-                       )
+                     ? ( currentBracket.bracketIndex + 1 ) + getSuffix( currentBracket.bracketIndex + 1 ) + " "
                      : ""
-                 ) +
-                 " bracket"
+                  ) +
+                 "bracket"
                // Another player's bracket
                : currentBracket.name + "'s " +
                  ( ( currentBracket.bracketIndex > 0 )
-                      ? ( ( currentBracket.bracketIndex + 1 ) +
-                          ( ( currentBracket.bracketIndex + 1 === 1 )
-                            ? "st"
-                            : ( ( currentBracket.bracketIndex + 1 === 2 )
-                               ? "nd"
-                               : ( ( currentBracket.bracketIndex + 1 === 3 )
-                                  ? "rd"
-                                  : "th"
-                                 )
-                              )
-                          )
-                        )
-                      : ""
-                 )
-                 + " bracket"
+                     ? ( currentBracket.bracketIndex + 1 ) + getSuffix( currentBracket.bracketIndex + 1 ) + " "
+                     : ""
+                  ) +
+                 "bracket"
             : ( gamesStarted )
                ? ""
                : "Create New Bracket"
@@ -209,13 +186,17 @@ function Picks( props )
                      id="tiebreaker-input"
                      variant="outlined"
                      size="small"
-                     inputMode="numeric"
+                     inputmode="decimal"
+                     pattern="[0-9]*"
+                     type="tel"
                      style={{ marginTop: "1em" }}
                      defaultValue={tiebreaker}
                      key={reloadTiebreaker}
+                     locked={gamesStarted}
                      onChange={( event ) => {
                         setTiebreaker( event.target.value );
                      }}
+                     disabled={gamesStarted}
                   />
 
                   {/* If the games have started, don't show a submit button */}
@@ -339,6 +320,27 @@ function PlayoffBracketGame( props )
          })}
       </ToggleButtonGroup>
    )
+}
+
+// Function to find the correct suffix for a number based on its last digit
+function getSuffix( number )
+{
+   if ( number % 10 === 1 )
+   {
+      return "st";
+   }
+   else if ( number % 10 === 2 )
+   {
+      return "nd";
+   }
+   else if ( number % 10 === 3 )
+   {
+      return "rd";
+   }
+   else
+   {
+      return "th";
+   }
 }
 
 export default Picks;
