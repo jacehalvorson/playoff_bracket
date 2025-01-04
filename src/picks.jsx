@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
-import { computeAllGames, emptyGames, nflTeamColors } from "./bracket_utils.js"
-import { submitBracket, deleteBracket } from "./submit_bracket.js";
+import { computeAllGames, getSuffix, emptyGames, nflTeamColors } from "./bracket_utils.js"
+import { submitBracket, deleteBracket, changeDisplayName } from "./submit_bracket.js";
 
 import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -21,7 +21,7 @@ function Picks( props )
    const setPicks = props.setPicks;
    const tiebreaker = props.tiebreaker;
    const setTiebreaker = props.setTiebreaker
-   const setNewBracketSubmitted = props.setNewBracketSubmitted;
+   const setReloadBrackets = props.setReloadBrackets;
    const playoffTeams = props.playoffTeams;
    const group = props.group;
    const switchFocus = props.switchFocus;
@@ -69,12 +69,12 @@ function Picks( props )
 
    return (
       <div id="playoff-bracket-picks">
-         <p style={{textAlign: "center", fontSize: "5em", maxWidth: "90vw"}}>
+         <p style={{textAlign: "center", fontSize: "4em", maxWidth: "70vw"}}>
          {
             ( currentBracket )
             ? ( currentBracket.devices && currentBracket.devices.includes( deviceID ) )
                // Player owns this bracket
-               ? ( gamesStarted ?  "Y" : "Edit y" ) + "our " +
+               ? `${ currentBracket.name } - ${( gamesStarted ?  "Y" : "Edit y" )}our ` +
                  ( ( currentBracket.bracketIndex > 0 ) 
                      ? ( currentBracket.bracketIndex + 1 ) + getSuffix( currentBracket.bracketIndex + 1 ) + " "
                      : ""
@@ -92,6 +92,16 @@ function Picks( props )
                : "Create New Bracket"
          }
          </p>
+         {
+         ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) && currentBracket.name )
+            ? <Button
+               variant="text"
+               onClick={ ( ) => changeDisplayName( setSubmitStatus, currentYear, group, currentBracket.name, setReloadBrackets, switchFocus ) }
+            >
+               Change Display Name
+            </Button>
+            : <></>
+         }
          <div id="playoff-bracket-wildcard-games">
             <h2>Wild Card Games</h2>
             <div className="playoff-bracket-afc">
@@ -223,12 +233,12 @@ function Picks( props )
                               if ( currentBracket && currentBracket.picks === picks && currentBracket.tiebreaker === tiebreaker )
                               {
                                  // This button is a Delete button, delete the bracket
-                                 deleteBracket( setSubmitStatus, deviceID, setNewBracketSubmitted, currentYear, switchFocus, currentBracket );
+                                 deleteBracket( setSubmitStatus, deviceID, setReloadBrackets, currentYear, switchFocus, currentBracket );
                               }
                               else
                               {
                                  // This button is a Submit/Save button, submit/save the bracket
-                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket );
+                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setReloadBrackets, currentYear, group, switchFocus, currentBracket );
                               }
                            }}
                         >
@@ -321,27 +331,6 @@ function PlayoffBracketGame( props )
          })}
       </ToggleButtonGroup>
    )
-}
-
-// Function to find the correct suffix for a number based on its last digit
-function getSuffix( number )
-{
-   if ( number % 10 === 1 )
-   {
-      return "st";
-   }
-   else if ( number % 10 === 2 )
-   {
-      return "nd";
-   }
-   else if ( number % 10 === 3 )
-   {
-      return "rd";
-   }
-   else
-   {
-      return "th";
-   }
 }
 
 export default Picks;

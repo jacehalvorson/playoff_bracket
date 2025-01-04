@@ -1,8 +1,9 @@
 import { fetchAPI, postAPI, deleteAPI } from "./api_requests.js";
+import { getSuffix } from "./bracket_utils.js";
 
 const apiName = "apiplayoffbrackets";
 
-export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setNewBracketSubmitted, currentYear, group, switchFocus, currentBracket )
+export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setReloadBrackets, currentYear, group, switchFocus, currentBracket )
 {
    let brackets = [ ];
    let devices = [ ];
@@ -43,7 +44,7 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
       // First check if this device has been used in the past
       response.forEach( player =>
       {
-         if ( ( player.devices && player.devices.includes( deviceID ) )  )
+         if ( ( player && player.devices && player.devices.includes( deviceID ) )  )
          {
             // This device has been used by this player before
             playerFound = true;
@@ -63,7 +64,7 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
          }
          if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( name ) )
          {
-            throw Error( "Invalid Name \"" + name + "\" - Must be less than 20 of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
+            throw Error( "Invalid Name \"" + name + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
          }
 
          // Check if this player is already in this group (on a different device)
@@ -124,8 +125,8 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
       .then( response =>
       {
          setSubmitStatus( "Success" );
-         setNewBracketSubmitted( oldValue => !oldValue );
-         switchFocus( null, 0 );
+         setReloadBrackets( oldValue => !oldValue );
+         switchFocus( 0 );
       })
       .catch( err =>
       {
@@ -146,7 +147,7 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
    });
 }
 
-export async function deleteBracket( setSubmitStatus, deviceID, setNewBracketSubmitted, currentYear, switchFocus, currentBracket )
+export async function deleteBracket( setSubmitStatus, deviceID, setReloadBrackets, currentYear, switchFocus, currentBracket )
 {
    let brackets = [ ];
    let devices = [ ];
@@ -173,7 +174,7 @@ export async function deleteBracket( setSubmitStatus, deviceID, setNewBracketSub
    {
       response.forEach( player =>
       {
-         if ( ( player.devices && player.devices.includes( deviceID ) )  )
+         if ( ( player && player.devices && player.devices.includes( deviceID ) )  )
          {
             // This device has been used by this player before
             playerFound = true;
@@ -188,10 +189,18 @@ export async function deleteBracket( setSubmitStatus, deviceID, setNewBracketSub
          throw Error( `This bracket cannot be found in group ${currentBracket.group}` );
       }
 
+      let confirm = window.confirm(`${name} - Delete your ${
+         ( ( currentBracket.bracketIndex > 0 ) 
+            ? ( currentBracket.bracketIndex + 1 ) + getSuffix( currentBracket.bracketIndex + 1 ) + " "
+            : ""
+         ) + "bracket"} from group '${currentBracket.group}'?`);
+      if ( !confirm )
+      {
+         throw Error( "Bracket not deleted" );
+      }
+
       // Remove bracket at given index
-      console.log( brackets );
       brackets = brackets.filter( ( entry, index ) => ( index !== currentBracket.bracketIndex ) );
-      console.log( brackets );
 
       // Check if the player should be removed entirely from this group
       if ( brackets.length === 0 )
@@ -200,10 +209,9 @@ export async function deleteBracket( setSubmitStatus, deviceID, setNewBracketSub
          deleteAPI( apiName, `/brackets/${encodeURIComponent( currentYear )}/${encodeURIComponent( currentBracket.group )}/${encodeURIComponent( name )}` )
          .then( response =>
          {
-            console.log( response );
             setSubmitStatus( "Success" );
-            setNewBracketSubmitted( oldValue => !oldValue );
-            switchFocus( null, 0 );
+            setReloadBrackets( oldValue => !oldValue );
+            switchFocus( 0 );
          })
          .catch( err =>
          {
@@ -214,7 +222,6 @@ export async function deleteBracket( setSubmitStatus, deviceID, setNewBracketSub
       }
 
       // Otherwise, player still has other brackets in this group. POST data with this bracket removed
-
       let bracketData = {
          key: `${currentYear}${currentBracket.group}`,
          player: name,
@@ -227,8 +234,8 @@ export async function deleteBracket( setSubmitStatus, deviceID, setNewBracketSub
       .then( response =>
       {
          setSubmitStatus( "Success" );
-         setNewBracketSubmitted( oldValue => !oldValue );
-         switchFocus( null, 0 );
+         setReloadBrackets( oldValue => !oldValue );
+         switchFocus( 0 );
       })
       .catch( err =>
       {
@@ -239,5 +246,73 @@ export async function deleteBracket( setSubmitStatus, deviceID, setNewBracketSub
    {
       console.error( err );
       setSubmitStatus( err.message );
+   });
+}
+
+export async function changeDisplayName( setSubmitStatus, currentYear, group, oldName, setReloadBrackets, switchFocus )
+{
+   let brackets = [ ];
+   let devices = [ ];
+   let name = "";
+   let playerFound = false;
+
+   // Fetch this player's information
+   fetchAPI( apiName, `/brackets/${encodeURIComponent( currentYear )}/${encodeURIComponent( group )}` )
+   .then( response =>
+   {
+      response.forEach( player =>
+      {
+         if ( player && player.player && player.player === oldName )
+         {
+            // This player is in this group
+            playerFound = true;
+            brackets = player.brackets;
+            devices = player.devices;
+         }
+      });
+
+      if ( !playerFound )
+      {
+         return;
+      }
+
+      name = prompt( oldName + " - Enter your new display name:" );
+      if ( !name || !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( name ) )
+      {
+         setSubmitStatus( "Invalid Name \"" + name + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
+         return;
+      }
+
+      let bracketData = {
+         key: `${currentYear}${group}`,
+         player: name,
+         brackets: brackets,
+         devices: devices
+      };
+   
+      // Send POST request to database API with this data
+      postAPI( apiName, "/brackets", bracketData )
+      .then( response =>
+      {
+         // Delete the old player entry
+         deleteAPI( apiName, `/brackets/${encodeURIComponent( currentYear )}/${encodeURIComponent( group )}/${encodeURIComponent( oldName )}` )
+         .then( response =>
+         {
+            setReloadBrackets( oldValue => !oldValue );
+            switchFocus( 0 );
+         })
+         .catch( err =>
+         {
+            console.error( err );
+         });
+      })
+      .catch( err =>
+      {
+         console.error( err );
+      });
+   })
+   .catch( err =>
+   {
+      console.error( err );
    });
 }

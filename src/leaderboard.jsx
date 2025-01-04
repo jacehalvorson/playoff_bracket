@@ -126,16 +126,17 @@ function Leaderboard( props )
       }
       else if ( gamesStarted )
       {
-         setLoadStatus ( "No brackets found" + ( ( group !== "All" ) ? ` in group ${group}` : "" ) );
+         setLoadStatus( <h3>No brackets found{ ( ( group !== "All" ) ? ` in group '${group}'` : "" ) }</h3> );
       }
       else
       {
-         setLoadStatus( "You don't have any brackets" + ( group !== "All" ? ` in group '${group}'` : "" ) + ". Use the 'Picks' button to create one." );
+         setLoadStatus( <><h3>{`You don't have any brackets${( group !== "All" ? (" in group '" + group + "'") : "" )}`}</h3><h3>Use the Picks button to create one</h3></> );
       }
    }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID ] );
 
    return (
       <div id="playoff-bracket-leaderboard">
+         <h2 style={{margin:0}}>"What-if" Buttons</h2>
          <div id="playoff-bracket-what-if">
          {
             currentGames.map( ( game, gameIndex ) =>
@@ -198,7 +199,7 @@ function Leaderboard( props )
          </div>
 
          {( loadStatus )
-         ? <h2>{ loadStatus }</h2>
+         ? loadStatus
          : brackets.map( ( bracket, index ) =>
             <div className="playoff-bracket-leaderboard-entry" 
                onClick={ ( ) => { leaderboardEntryClick( bracket ); } }

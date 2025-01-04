@@ -11,8 +11,11 @@
    font-size: 1.2em;
 }
 
-#playoff-bracket-leaderboard > h2 {
+#playoff-bracket-leaderboard > h3 {
    text-align: center;
+   width: 90%;
+   font-size: 2em;
+   margin: 0.25em;
 }
 
 #playoff-bracket-what-if {
