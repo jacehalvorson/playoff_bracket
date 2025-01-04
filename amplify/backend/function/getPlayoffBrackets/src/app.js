@@ -122,7 +122,7 @@ app.get(path + '/:year' + '/:group', async function(req, res)
     res.json({error: 'Invalid year'});
     return;
   }
-  if ( !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.params['group'] ) )
+  if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( req.params['group'] ) )
   {
     res.statusCode = 400;
     res.json({error: 'Invalid group'});
@@ -197,13 +197,13 @@ app.post(path, async function(req, res)
     res.json({error: 'Invalid year'});
     return;
   }
-  if ( !req.body['key'] || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.body['key'].substring( 4 ) ) )
+  if ( !req.body['key'] || !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( req.body['key'].substring( 4 ) ) )
   {
     res.statusCode = 400;
     res.json({error: 'Invalid group'});
     return;
   }
-  if ( !req.body['player'] || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.body['player'] ) )
+  if ( !req.body['player'] || !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( req.body['player'] ) )
   {
     res.statusCode = 400;
     res.json({error: 'Invalid player'});
@@ -241,13 +241,13 @@ app.delete(path + '/:year' + '/:group' + '/:player', async function(req, res)
     res.json({error: 'Invalid year'});
     return;
   }
-  if ( !req.params['group'] || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.params['group'] ) )
+  if ( !req.params['group'] || !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( req.params['group'] ) )
   {
     res.statusCode = 400;
     res.json({error: 'Invalid group'});
     return;
   }
-  if ( !req.params['player'] || !/^[A-Za-z0-9 !?/\\'"[\]()_-]{1,20}$/.test( req.params['player'] ) )
+  if ( !req.params['player'] || !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( req.params['player'] ) )
   {
     res.statusCode = 400;
     res.json({error: 'Invalid player'});

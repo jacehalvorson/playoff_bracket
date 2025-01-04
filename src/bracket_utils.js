@@ -235,4 +235,25 @@ function getCurrentGames( nflGameResults )
    }
 }
 
-export { computeAllGames, getCurrentGames, emptyGames, nflTeamColors };
+// Function to find the correct suffix for a number based on its last digit
+function getSuffix( number )
+{
+   if ( number % 10 === 1 )
+   {
+      return "st";
+   }
+   else if ( number % 10 === 2 )
+   {
+      return "nd";
+   }
+   else if ( number % 10 === 3 )
+   {
+      return "rd";
+   }
+   else
+   {
+      return "th";
+   }
+}
+
+export { computeAllGames, getCurrentGames, getSuffix, emptyGames, nflTeamColors };

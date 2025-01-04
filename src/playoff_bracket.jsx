@@ -44,7 +44,7 @@ function PlayoffBracket( )
    const [ allBrackets, setAllBrackets ] = useState( [ ] );
    const [ picks, setPicks ] = useState( "0000000000000" );
    const [ tiebreaker, setTiebreaker ] = useState( "" );
-   const [ newBracketSubmitted, setNewBracketSubmitted ] = useState( false );
+   const [ reloadBrackets, setReloadBrackets ] = useState( false );
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( { } );
    const [ groups, setGroups ] = useState( [ ] );
@@ -100,7 +100,7 @@ function PlayoffBracket( )
 
    }, [ searchParams ] );
    
-   // API call to fetch teams, brackets, and groups when the page loads
+   // API call to fetch teams and other system info when page loads
    useEffect( ( ) =>
    {
       // Teams
@@ -130,7 +130,8 @@ function PlayoffBracket( )
          if ( gamesStarted && gamesStarted.value && parseInt( gamesStarted.value ) === 1 )
          {
             setGamesStarted( true );
-            switchFocus( null, LEADERBOARD_FOCUS );
+            switchFocus( LEADERBOARD_FOCUS );
+            setPicks( winners );
          }
          else
          {
@@ -141,7 +142,11 @@ function PlayoffBracket( )
          console.log( "Error fetching teams: " + e );
          setLoadStatus( "Error fetching teams" );
       });
+   }, [ ] );
 
+   // API call to fetch brackets when page loads (or when reload is requested)
+   useEffect( ( ) =>
+   {
       // Brackets and groups
       fetchAPI( apiName, `/brackets/${currentYear}` )
       .then( response => {
@@ -183,23 +188,35 @@ function PlayoffBracket( )
          });
    
          setAllBrackets( brackets );
-         setCurrentBracket( null );
-         setPicks( "0000000000000" );
-         setTiebreaker( "" );
-         setReloadTiebreaker( oldValue => !oldValue );
       })
       .catch( e => {
          setLoadStatus( "Error fetching brackets" );
          console.log( "Error fetching brackets: " + e );
       });
-   }, [ deviceID, newBracketSubmitted ] );
+   }, [ reloadBrackets ] );
 
-   const switchFocus = (event, newFocus) =>
+   const focusButtonPressed = ( event, newFocus ) =>
    {
+      // Slide the picks screen to main center view
       if ( newFocus !== null )
       {
-         setFocus( newFocus );
+         switchFocus( newFocus );
       }
+
+      // Reset to "Create a new bracket" screen when pressing the "Picks" button.
+      // When viewing brackets after games have started, the one you click will stay loaded.
+      if ( !gamesStarted && newFocus === PICKS_FOCUS )
+      {
+         setCurrentBracket( null );
+         setPicks( "0000000000000" );
+         setTiebreaker( "" );
+         setReloadTiebreaker( oldValue => !oldValue );
+      }
+   }
+
+   const switchFocus = ( newFocus ) =>
+   {
+      setFocus( newFocus );
 
       // Scroll to top if the user switches screens
       window.scrollTo({
@@ -218,7 +235,7 @@ function PlayoffBracket( )
       }
       else if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( newGroup ) )
       {
-         setLoadStatus( "Invalid group name \"" + newGroup + "\" - Must be less than 20 of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
+         setLoadStatus( "Invalid group name \"" + newGroup + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
          return;
       }
 
@@ -234,7 +251,7 @@ function PlayoffBracket( )
       setTiebreaker( bracket.tiebreaker );
       setReloadTiebreaker( oldValue => !oldValue );
       setGroup( bracket.group );
-      switchFocus( null, PICKS_FOCUS );
+      switchFocus( PICKS_FOCUS );
    }
 
    return (
@@ -243,7 +260,7 @@ function PlayoffBracket( )
 
          <div id="focus-selection-group">
             <ToggleButtonGroup
-               onChange={switchFocus}
+               onChange={focusButtonPressed}
                value={focus}
                exclusive
                aria-label="select-focus"
@@ -318,7 +335,7 @@ function PlayoffBracket( )
                setPicks={setPicks}
                tiebreaker={tiebreaker}
                setTiebreaker={setTiebreaker}
-               setNewBracketSubmitted={setNewBracketSubmitted}
+               setReloadBrackets={setReloadBrackets}
                playoffTeams={playoffTeams}
                group={group}
                switchFocus={switchFocus}
