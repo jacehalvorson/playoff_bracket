@@ -40,13 +40,28 @@ function getOrCreateDeviceID( )
 
 function PlayoffBracket( )
 {
-   const [ focus, setFocus ] = useState( PICKS_FOCUS );
-   const [ allBrackets, setAllBrackets ] = useState( [ ] );
+   const [ focus, setFocus ] = useState( 0 );
+   const [ allBrackets, setAllBrackets ] = useState( null );
    const [ picks, setPicks ] = useState( "0000000000000" );
    const [ tiebreaker, setTiebreaker ] = useState( "" );
    const [ reloadBrackets, setReloadBrackets ] = useState( false );
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
-   const [ playoffTeams, setPlayoffTeams ] = useState( { } );
+   const [ playoffTeams, setPlayoffTeams ] = useState( {
+      "N1": { name: "Vikings", seed: 1 },
+      "N2": { name: "Eagles", seed: 2 },
+      "N3": { name: "Rams", seed: 3 },
+      "N4": { name: "Buccaneers", seed: 4 },
+      "N5": { name: "Lions", seed: 5 },
+      "N6": { name: "Commanders", seed: 6 },
+      "N7": { name: "Packers", seed: 7 },
+      "A1": { name: "Chiefs", seed: 1 },
+      "A2": { name: "Bills", seed: 2 },
+      "A3": { name: "Ravens", seed: 3 },
+      "A4": { name: "Texans", seed: 4 },
+      "A5": { name: "Steelers", seed: 5 },
+      "A6": { name: "Chargers", seed: 6 },
+      "A7": { name: "Broncos", seed: 7 }
+    } );
    const [ groups, setGroups ] = useState( [ ] );
    const [ group, setGroup ] = useState( "" );
    const [ loadStatus, setLoadStatus ] = useState( <h3>Loading brackets...</h3> );
@@ -226,10 +241,16 @@ function PlayoffBracket( )
          // User cancelled, return with no error
          return;
       }
-      else if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( newGroup ) )
+      if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( newGroup ) )
       {
          switchFocus( LEADERBOARD_FOCUS );
          setLoadStatus( <h3>Invalid group name "{newGroup}" - Must be 20 or less of the following characters: {"A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-"}</h3> );
+         return;
+      }
+      if ( groups.includes( newGroup ) || newGroup === "All" )
+      {
+         switchFocus( LEADERBOARD_FOCUS );
+         setLoadStatus( <h3>Group "{newGroup}" already exists</h3> );
          return;
       }
 

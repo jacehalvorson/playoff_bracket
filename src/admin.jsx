@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchAPI } from "./api_requests.js";
-import submitWinners from "./submit_winners.js";
+import { submitWinners, submitTeam } from "./submit_winners.js";
 import { getOrCreateDeviceID } from "./playoff_bracket.jsx"
 import { computeAllGames } from "./bracket_utils.js";
 
@@ -180,6 +180,11 @@ function Admin( )
          <input type="text" id="newGamesStarted" defaultValue={gamesStarted ? "1" : "0"} key={gamesStarted} />
          <button onClick={ ( ) => { submitWinners( setSubmitGame, deviceId, "gamesStarted" ); }}>
             Update gamesStarted
+         </button>
+         <input type="text" id="newTeamIndex" placeholder="N1" />
+         <input type="text" id="newTeamName" placeholder="Vikings" />
+         <button onClick={ ( ) => { submitTeam( setSubmitGame, deviceId ); }}>
+            Update team
          </button>
          <h2><span id="red">{submitGame}</span></h2>
          <h4><span id="white">{deviceId}</span></h4>

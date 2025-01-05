@@ -277,8 +277,15 @@ export async function changeDisplayName( setSubmitStatus, currentYear, group, ol
       }
 
       name = prompt( oldName + " - Enter your new display name:" );
-      if ( !name || !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( name ) )
+      if ( !name )
       {
+         // User cancelled, exit with no error
+         return;
+      }
+      
+      if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( name ) )
+      {
+         // Invalid name
          setSubmitStatus( "Invalid Name \"" + name + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
          return;
       }
