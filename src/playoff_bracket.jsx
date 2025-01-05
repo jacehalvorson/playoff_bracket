@@ -40,7 +40,7 @@ function getOrCreateDeviceID( )
 
 function PlayoffBracket( )
 {
-   const [ focus, setFocus ] = useState( 0 );
+   const [ focus, setFocus ] = useState( PICKS_FOCUS );
    const [ allBrackets, setAllBrackets ] = useState( null );
    const [ picks, setPicks ] = useState( "0000000000000" );
    const [ tiebreaker, setTiebreaker ] = useState( "" );
