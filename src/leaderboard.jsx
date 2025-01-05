@@ -122,7 +122,7 @@ function Leaderboard( props )
 
       if ( brackets.length > 0 )
       {
-         setLoadStatus( "" );
+         setLoadStatus( <></> );
       }
       else if ( gamesStarted )
       {
@@ -198,9 +198,8 @@ function Leaderboard( props )
          }
          </div>
 
-         {( loadStatus )
-         ? loadStatus
-         : brackets.map( ( bracket, index ) =>
+         {loadStatus}
+         {brackets.map( ( bracket, index ) =>
             <div className="playoff-bracket-leaderboard-entry" 
                onClick={ ( ) => { leaderboardEntryClick( bracket ); } }
                key={ index }

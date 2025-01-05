@@ -49,7 +49,7 @@ function PlayoffBracket( )
    const [ playoffTeams, setPlayoffTeams ] = useState( { } );
    const [ groups, setGroups ] = useState( [ ] );
    const [ group, setGroup ] = useState( "" );
-   const [ loadStatus, setLoadStatus ] = useState( "Loading brackets..." );
+   const [ loadStatus, setLoadStatus ] = useState( <h3>Loading brackets...</h3> );
    const [ currentBracket, setCurrentBracket ] = useState( null );
    const [ gamesStarted, setGamesStarted ] = useState( false );
    const [reloadTiebreaker, setReloadTiebreaker] = useState( false );
@@ -139,8 +139,8 @@ function PlayoffBracket( )
          }
       })
       .catch( e => {
-         console.log( "Error fetching teams: " + e );
-         setLoadStatus( "Error fetching teams" );
+         console.error( "Error fetching teams: " + e );
+         setLoadStatus( <h3>Error fetching teams</h3> );
       });
    }, [ ] );
 
@@ -153,8 +153,7 @@ function PlayoffBracket( )
          // Groups
          const groups = response.map( bracket =>
          {
-            const group = bracket.key.substring( 4 );
-            return group;
+            return bracket.key.substring( 4 );
          }).filter( group => /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( group ) );
 
          setGroups( oldGroups => [ ...new Set( [ ...oldGroups, ...groups ] ) ] );
@@ -163,35 +162,28 @@ function PlayoffBracket( )
          let brackets = [];
          response.forEach( player =>
          {
-            if ( !player.brackets || player.brackets.length === 0 )
-            {
-               console.log("Player " + player.player + " has no brackets");
-            }
-            else
-            {
-               player.brackets.forEach((bracket, bracketIndex) =>
-                  brackets.push({
-                     name: player.player,
-                     group: player.key.substring( 4 ),
-                     bracketIndex: bracketIndex,
-                     picks: bracket.picks,
-                     tiebreaker: bracket.tiebreaker,
-                     devices: player.devices,
-                     // The following 3 fields will be populated by calculatePoints.
-                     // Default to nominal values for now.
-                     points: 0,
-                     maxPoints: 0,
-                     superBowlWinner: "N1"
-                  })
-               );
-            }
+            player.brackets.forEach((bracket, bracketIndex) =>
+               brackets.push({
+                  name: player.player,
+                  group: player.key.substring( 4 ),
+                  bracketIndex: bracketIndex,
+                  picks: bracket.picks,
+                  tiebreaker: bracket.tiebreaker,
+                  devices: player.devices,
+                  // The following 3 fields will be populated by calculatePoints.
+                  // Default to nominal values for now.
+                  points: 0,
+                  maxPoints: 0,
+                  superBowlWinner: "N1"
+               })
+            );
          });
    
          setAllBrackets( brackets );
       })
       .catch( e => {
-         setLoadStatus( "Error fetching brackets" );
-         console.log( "Error fetching brackets: " + e );
+         console.error( "Error fetching brackets: " + e );
+         setLoadStatus( <h3>Error fetching brackets</h3> );
       });
    }, [ reloadBrackets ] );
 
@@ -204,8 +196,9 @@ function PlayoffBracket( )
       }
 
       // Reset to "Create a new bracket" screen when pressing the "Picks" button.
-      // When viewing brackets after games have started, the one you click will stay loaded.
-      if ( !gamesStarted && newFocus === PICKS_FOCUS )
+      // Exception 1 - When viewing brackets after games have started, the one you click will stay loaded.
+      // Exception 2 - When there is no bracket loaded, don't reset the custom picks that the user is about to submit.
+      if ( newFocus === PICKS_FOCUS && !gamesStarted && currentBracket )
       {
          setCurrentBracket( null );
          setPicks( "0000000000000" );
@@ -235,7 +228,8 @@ function PlayoffBracket( )
       }
       else if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( newGroup ) )
       {
-         setLoadStatus( "Invalid group name \"" + newGroup + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
+         switchFocus( LEADERBOARD_FOCUS );
+         setLoadStatus( <h3>Invalid group name "{newGroup}" - Must be 20 or less of the following characters: {"A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-"}</h3> );
          return;
       }
 
