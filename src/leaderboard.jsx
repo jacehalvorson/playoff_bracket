@@ -71,27 +71,42 @@ function Leaderboard( props )
    // Update the scores when the brackets, winning entry, or test picks change
    useEffect( ( ) =>
    {
-      // If the group is unset or there are no brackets, there is nothing to be done
-      if ( !group || allBrackets.length === 0 )
+      // If the group is unset or there brackets haven't been loaded, there is nothing to be done
+      if ( !group || !allBrackets )
       {
          return;
       }
 
-      // Use winning entry to calculate scores, but splice in test picks for the current unpicked games
-      let scoreSource = winningPicks.substring( 0, currentPicksOffset ) +
-                        testPicks.substring( 0, currentGames.length ) +
-                        winningPicks.substring( currentPicksOffset + currentGames.length );
-
       // Get all the brackets in the user's current group
       let brackets = allBrackets.filter( bracket => ( bracket.group === group ) || ( group === "All" ) );
-
+      
+      // Filter out brackets owned by other people if the games haven't started yet
       if ( !gamesStarted )
       {
-         // Filter out brackets owned by other people if the games haven't started yet
          brackets = brackets.filter( bracket => bracket.devices.includes( deviceID ) );
       }
 
-      // Calculate points, sort, and write the brackets to the global variable
+      // If there are no brackets meeting this criteria, empty bracket list and notify user
+      if ( brackets.length === 0 )
+      {
+         setBrackets( [ ] );
+         setLoadStatus(
+            ( gamesStarted )
+            ? <h3>No brackets found{ ( ( group !== "All" ) ? ` in group '${group}'` : "" ) }</h3>
+            : <>
+               <h3>{`You don't have any brackets${( group !== "All" ? (" in group '" + group + "'") : "" )}`}</h3>
+               <h3>Use the Picks button to create one</h3>
+              </>
+         );
+         return;
+      }
+
+      // Use winning entry to calculate scores, but splice in test picks for the current unpicked games
+      const scoreSource = winningPicks.substring( 0, currentPicksOffset ) +
+                        testPicks.substring( 0, currentGames.length ) +
+                        winningPicks.substring( currentPicksOffset + currentGames.length );
+
+      // Calculate points, max points, and super bowl winner for each bracket
       brackets.forEach(bracket =>
       {
          const calculatedData = calculatePoints( bracket.picks, scoreSource );
@@ -117,21 +132,9 @@ function Leaderboard( props )
          }
       });
 
-      // Set brackets and load status
+      // Set brackets global variable and empty load status (indicating success)
       setBrackets( brackets );
-
-      if ( brackets.length > 0 )
-      {
-         setLoadStatus( "" );
-      }
-      else if ( gamesStarted )
-      {
-         setLoadStatus( <h3>No brackets found{ ( ( group !== "All" ) ? ` in group '${group}'` : "" ) }</h3> );
-      }
-      else
-      {
-         setLoadStatus( <><h3>{`You don't have any brackets${( group !== "All" ? (" in group '" + group + "'") : "" )}`}</h3><h3>Use the Picks button to create one</h3></> );
-      }
+      setLoadStatus( <></> );
    }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID ] );
 
    return (
@@ -198,9 +201,8 @@ function Leaderboard( props )
          }
          </div>
 
-         {( loadStatus )
-         ? loadStatus
-         : brackets.map( ( bracket, index ) =>
+         {loadStatus}
+         {brackets.map( ( bracket, index ) =>
             <div className="playoff-bracket-leaderboard-entry" 
                onClick={ ( ) => { leaderboardEntryClick( bracket ); } }
                key={ index }
