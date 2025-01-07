@@ -14,7 +14,6 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import Button from '@mui/material/Button';
 import { ThemeProvider } from '@mui/material/styles';
 import { v7 } from "uuid";
 
@@ -309,25 +308,24 @@ function PlayoffBracket( )
                   label="Group"
                   onChange={ ( event ) =>
                   {
-                     localStorage.setItem( 'group', event.target.value );
-                     setGroup( event.target.value )
+                     if ( event.target.value === "+ Create New" )
+                     {
+                        addNewGroup( );
+                     }
+                     else
+                     {
+                        localStorage.setItem( 'group', event.target.value );
+                        setGroup( event.target.value )
+                     }
                   } }
                   style={{ color: "white" }}
                   autoWidth
                >
                   <MenuItem value={"All"}> All </MenuItem>
                   { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
+                  <MenuItem value={"+ Create New"}> + Create New </MenuItem>
                </Select>
             </FormControl>
-            {( gamesStarted )
-               ? <></>
-               : <Button
-                  variant="contained"
-                  onClick={ addNewGroup }
-                 >
-                  New
-               </Button>
-            }
          </div>
 
          <div id="playoff-bracket-content" style={{ marginLeft: `${ focus * -100 }vw` }}>
