@@ -46,19 +46,19 @@ function PlayoffBracket( )
    const [ reloadBrackets, setReloadBrackets ] = useState( false );
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( {
-      "N1": { name: "Vikings", seed: 1 },
+      "N1": { name: "Lions", seed: 1 },
       "N2": { name: "Eagles", seed: 2 },
-      "N3": { name: "Rams", seed: 3 },
-      "N4": { name: "Buccaneers", seed: 4 },
-      "N5": { name: "Lions", seed: 5 },
+      "N3": { name: "Buccaneers", seed: 3 },
+      "N4": { name: "Rams", seed: 4 },
+      "N5": { name: "Vikings", seed: 5 },
       "N6": { name: "Commanders", seed: 6 },
       "N7": { name: "Packers", seed: 7 },
       "A1": { name: "Chiefs", seed: 1 },
       "A2": { name: "Bills", seed: 2 },
       "A3": { name: "Ravens", seed: 3 },
       "A4": { name: "Texans", seed: 4 },
-      "A5": { name: "Steelers", seed: 5 },
-      "A6": { name: "Chargers", seed: 6 },
+      "A5": { name: "Chargers", seed: 5 },
+      "A6": { name: "Steelers", seed: 6 },
       "A7": { name: "Broncos", seed: 7 }
     } );
    const [ groups, setGroups ] = useState( [ ] );
