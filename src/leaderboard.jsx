@@ -79,12 +79,6 @@ function Leaderboard( props )
 
       // Get all the brackets in the user's current group
       let brackets = allBrackets.filter( bracket => ( bracket.group === group ) || ( group === "All" ) );
-      
-      // Filter out brackets owned by other people if the games haven't started yet
-      if ( !gamesStarted )
-      {
-         brackets = brackets.filter( bracket => bracket.devices.includes( deviceID ) );
-      }
 
       // If there are no brackets meeting this criteria, empty bracket list and notify user
       if ( brackets.length === 0 )
@@ -109,25 +103,48 @@ function Leaderboard( props )
       // Calculate points, max points, and super bowl winner for each bracket
       brackets.forEach(bracket =>
       {
-         const calculatedData = calculatePoints( bracket.picks, scoreSource );
-         bracket.points = calculatedData.points;
-         bracket.maxPoints = calculatedData.maxPoints;
-         bracket.superBowlWinner = calculatedData.superBowlWinner;
+         if ( gamesStarted || bracket.devices.includes( deviceID ) )
+         {
+            // User has access to this bracket
+            const calculatedData = calculatePoints( bracket.picks, scoreSource );
+            bracket.points = calculatedData.points;
+            bracket.maxPoints = calculatedData.maxPoints;
+            bracket.superBowlWinner = calculatedData.superBowlWinner;
+         }
+         else
+         {
+            // Data should be hidden from user
+            bracket.name = "???";
+            bracket.picks = "0000000000000";
+            bracket.tiebreaker = 0;
+            bracket.points = "?";
+            bracket.maxPoints = "?";
+            bracket.superBowlWinner = "";
+         }
       });
 
       // Sort first on points won, then points available, then by name, then by bracket index
       brackets.sort( ( a, b ) =>
       {
-         if (b.points !== a.points) {
+         if ( a.picks !== "0000000000000" && b.picks === "0000000000000" )
+         {
+            // Special case, put all empty brackets at the bottom
+            return -1;
+         }
+         else if ( b.points !== a.points )
+         {
             return b.points - a.points;
          }
-         else if (b.maxPoints !== a.maxPoints) {
+         else if ( b.maxPoints !== a.maxPoints )
+         {
             return b.maxPoints - a.maxPoints;
          }
-         else if (b.name !== a.name) {
-            return a.name.localeCompare(b.name);
+         else if ( b.name !== a.name )
+         {
+            return a.name.localeCompare( b.name );
          }
-         else {
+         else
+         {
             return a.bracketIndex - b.bracketIndex;
          }
       });
@@ -216,10 +233,13 @@ function Leaderboard( props )
                {/* Super Bowl winner */}
                {( playoffTeams && playoffTeams[ bracket.superBowlWinner ] && playoffTeams[ bracket.superBowlWinner ].name )
                    ? <img src={`/images/teams/${playoffTeams[ bracket.superBowlWinner ].name}-logo.png`}
-                          alt="Super Bowl winner"
-                          className="team-logo"
+                        alt="Super Bowl winner"
+                        className="team-logo"
                      />
-                   : <></>
+                   : <img src={`/images/question-mark.png`}
+                        alt="Empty Super Bowl winner"
+                        className="team-logo"
+                     />
                }
             </div>
          )}
