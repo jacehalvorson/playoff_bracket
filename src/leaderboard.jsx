@@ -114,7 +114,6 @@ function Leaderboard( props )
          else
          {
             // Data should be hidden from user
-            bracket.name = "???";
             bracket.picks = "0000000000000";
             bracket.tiebreaker = 0;
             bracket.points = "?";
