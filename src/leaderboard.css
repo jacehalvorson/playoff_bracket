@@ -31,8 +31,8 @@
    gap: 1em;
 }
 
-.playoff-bracket-what-if-group {
-   height: 100%;
+.playoff-bracket-what-if-game {
+   position: relative;
 }
 
 .playoff-bracket-what-if-button {
@@ -42,6 +42,14 @@
    display: flex;
    align-items: center;
    justify-content: center;
+}
+
+.lock-icon {
+   position: absolute;
+   z-index: 2;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
 }
 
 .playoff-bracket-what-if-button > img {
@@ -65,6 +73,36 @@
    overflow: hidden;
    padding-left: 1em;
    padding-right: 1em;
+}
+
+/* Make the user's entry glow */
+.user-bracket {
+   box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+   background: rgb(8, 8, 8);
+   transform: scale(1.08);
+   margin: 0.5em;
+}
+
+/* Glowing gray diagonal bar slowly moving across the user's entry */
+@keyframes slide-left-to-right {
+   0% {
+      left: -15%;
+   }
+   80% {
+      left: 115%;
+   }
+   100% {
+      left: 115%;
+   }
+}
+
+.user-bracket-background {
+   position: absolute;
+   background: rgba(160, 160, 160, 0.3);
+   width: 5%;
+   height: 200%;
+   transform: rotate(45deg);
+   animation: slide-left-to-right 5s ease-in-out infinite;
 }
 
 /* Devices that support true hover */

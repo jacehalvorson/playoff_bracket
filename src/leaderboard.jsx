@@ -7,6 +7,7 @@ import "./leaderboard.css";
 
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import LockIcon from '@mui/icons-material/Lock';
 
 function Leaderboard( props )
 {
@@ -161,6 +162,7 @@ function Leaderboard( props )
             currentGames.map( ( game, gameIndex ) =>
             {
                const winner = parseInt( testPicks[ gameIndex ] );
+               const isDisabled = ( winningPicks[ currentPicksOffset + gameIndex ] !== "0" ) ? true : false;
 
                const changeHandler = ( event, newWinner ) =>
                {
@@ -180,49 +182,59 @@ function Leaderboard( props )
                   return <Fragment key={gameIndex} />;
                }
 
-               return <ToggleButtonGroup
-                  className="playoff-bracket-what-if-group"
-                  key={gameIndex}
-                  orientation="vertical"
-                  exclusive
-                  onChange={changeHandler}
-                  value={winner}
-               >
-                  {[ game.homeTeam, game.awayTeam ].map( ( team, teamIndex ) =>
-                  {
-                     if ( !team || !playoffTeams[team] || !playoffTeams[team].name )
-                        return <ToggleButton className="playoff-bracket-what-if-button" key={teamIndex} disabled />;
+               return <div className="playoff-bracket-what-if-game" key={gameIndex}>
+                  {isDisabled
+                     ? <LockIcon className="lock-icon" />
+                     : <></>
+                  }
+                  <ToggleButtonGroup
+                     key={gameIndex}
+                     orientation="vertical"
+                     exclusive
+                     onChange={changeHandler}
+                     value={winner}
+                  >
+                     {[ game.homeTeam, game.awayTeam ].map( ( team, teamIndex ) =>
+                     {
+                        if ( !team || !playoffTeams[team] || !playoffTeams[team].name )
+                           return <ToggleButton className="playoff-bracket-what-if-button" key={teamIndex} disabled />;
 
-                     const teamName = playoffTeams[team].name;
-                     const isDisabled = ( winningPicks[ currentPicksOffset + gameIndex ] !== "0" ) ? true : false;
-                     const style = {
-                        borderWidth: 3,
-                        backgroundColor: ( winner === ( teamIndex + 1 ) && nflTeamColors[ teamName ] )
-                           ? nflTeamColors[ teamName ]
-                           : ""
-                     };
+                        const teamName = playoffTeams[team].name;
+                        const style = {
+                           borderWidth: 3,
+                           backgroundColor: ( winner === ( teamIndex + 1 ) && nflTeamColors[ teamName ] )
+                              ? nflTeamColors[ teamName ]
+                              : ""
+                        };
 
-                     return <ToggleButton
-                        className="playoff-bracket-what-if-button"
-                        value={teamIndex + 1}
-                        style={style}
-                        key={teamIndex}
-                        disabled={isDisabled}
-                     >
-                        <img src={"/images/teams/" + teamName + "-logo.png"} alt={ teamName + " Logo" } />
-                     </ToggleButton>
-                  })}
-               </ToggleButtonGroup>
+                        return <ToggleButton
+                           className="playoff-bracket-what-if-button"
+                           value={teamIndex + 1}
+                           style={style}
+                           key={teamIndex}
+                           disabled={isDisabled}
+                        >
+                           <img src={"/images/teams/" + teamName + "-logo.png"} alt={ teamName + " Logo" } />
+                        </ToggleButton>
+                     })}
+                  </ToggleButtonGroup>
+               </div>
             })
          }
          </div>
 
          {loadStatus}
          {brackets.map( ( bracket, index ) =>
-            <div className="playoff-bracket-leaderboard-entry" 
+            <div className={"playoff-bracket-leaderboard-entry" + ( ( bracket.devices.includes( deviceID ) ) ? " user-bracket" : "" )}
                onClick={ ( ) => { leaderboardEntryClick( bracket ); } }
                key={ index }
             >
+               {/* Background */}
+               {( bracket.devices.includes( deviceID ) )
+                  ? <div className="user-bracket-background" />
+                  : <></>
+               }
+
                {/* Entry name */}
                <h2 className="name">{ bracket.name }{ ( bracket.bracketIndex > 0 ) ? ` #${bracket.bracketIndex + 1}` : "" }</h2>
                {/* Score */}
