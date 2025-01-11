@@ -1,6 +1,6 @@
 {
-  "httpMethod": "DELETE",
-  "path": "/brackets/2025/prior/agereas",
+  "httpMethod": "GET",
+  "path": "/brackets/2025/PriorLakeHoods",
   "queryStringParameters": {
     "limit": "10"
   },
