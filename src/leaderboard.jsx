@@ -72,7 +72,7 @@ function Leaderboard( props )
    // Update the scores when the brackets, winning entry, or test picks change
    useEffect( ( ) =>
    {
-      // If the group is unset or there brackets haven't been loaded, there is nothing to be done
+      // If the group is unset or brackets haven't been loaded, there is nothing to be done
       if ( !group || !allBrackets )
       {
          return;
@@ -227,11 +227,12 @@ function Leaderboard( props )
          {brackets.map( ( bracket, index ) =>
             <div className={"playoff-bracket-leaderboard-entry" + ( ( bracket.devices.includes( deviceID ) ) ? " user-bracket" : "" )}
                onClick={ ( ) => { leaderboardEntryClick( bracket ); } }
-               key={ index }
+               // Refresh brackets when gamesStarted changes to avoid missing images
+               key={ [ index, gamesStarted ] }
             >
-               {/* Background */}
+               {/* Shining slider over user's bracket */}
                {( bracket.devices.includes( deviceID ) )
-                  ? <div className="user-bracket-background" />
+                  ? <div className="user-bracket-slider" />
                   : <></>
                }
 
