@@ -5,6 +5,7 @@ import Leaderboard from "./leaderboard.jsx";
 import Picks from "./picks.jsx";
 import { fetchAPI } from "./api_requests.js";
 import { theme } from './theme.js';
+import { computeRoundWinners } from "./bracket_utils.js";
 
 import "./playoff_bracket.css";
 
@@ -46,20 +47,20 @@ function PlayoffBracket( )
    const [ reloadBrackets, setReloadBrackets ] = useState( false );
    const [ winningPicks, setWinningPicks ] = useState( "0000000000000" );
    const [ playoffTeams, setPlayoffTeams ] = useState( {
-      "N1": { name: "Lions", seed: 1 },
-      "N2": { name: "Eagles", seed: 2 },
-      "N3": { name: "Buccaneers", seed: 3 },
-      "N4": { name: "Rams", seed: 4 },
-      "N5": { name: "Vikings", seed: 5 },
-      "N6": { name: "Commanders", seed: 6 },
-      "N7": { name: "Packers", seed: 7 },
-      "A1": { name: "Chiefs", seed: 1 },
-      "A2": { name: "Bills", seed: 2 },
-      "A3": { name: "Ravens", seed: 3 },
-      "A4": { name: "Texans", seed: 4 },
-      "A5": { name: "Chargers", seed: 5 },
-      "A6": { name: "Steelers", seed: 6 },
-      "A7": { name: "Broncos", seed: 7 }
+      "N1": { name: "Lions", conference: "N", seed: 1 },
+      "N2": { name: "Eagles", conference: "N", seed: 2 },
+      "N3": { name: "Buccaneers", conference: "N", seed: 3 },
+      "N4": { name: "Rams", conference: "N", seed: 4 },
+      "N5": { name: "Vikings", conference: "N", seed: 5 },
+      "N6": { name: "Commanders", conference: "N", seed: 6 },
+      "N7": { name: "Packers", conference: "N", seed: 7 },
+      "A1": { name: "Chiefs", conference: "A", seed: 1 },
+      "A2": { name: "Bills", conference: "A", seed: 2 },
+      "A3": { name: "Ravens", conference: "A", seed: 3 },
+      "A4": { name: "Texans", conference: "A", seed: 4 },
+      "A5": { name: "Chargers", conference: "A", seed: 5 },
+      "A6": { name: "Steelers", conference: "A", seed: 6 },
+      "A7": { name: "Broncos", conference: "A", seed: 7 }
     } );
    const [ groups, setGroups ] = useState( [ ] );
    const [ group, setGroup ] = useState( "" );
@@ -68,10 +69,39 @@ function PlayoffBracket( )
    const [ gamesStarted, setGamesStarted ] = useState( true );
    const [ reloadTiebreaker, setReloadTiebreaker] = useState( false );
    const [ teamsLoaded, setTeamsLoaded ] = useState( false );
+   const [ roundWinners, setRoundWinners ] = useState( [ [ ], [ ], [ ], [ ] ] );
 
    const [ searchParams ] = useSearchParams( );
 
    const deviceID = getOrCreateDeviceID( );
+
+   // Return 0 for unpicked, 1 for correct, and -1 for incorrect
+   const isPickCorrect = ( pickIndex, conference, seed ) =>
+   {
+      if ( winningPicks[ pickIndex ] === "0" )
+      {
+         return 0;
+      }
+
+      const roundIndex =
+         ( pickIndex >= 0 && pickIndex < 6 )
+            ? 0
+            : ( pickIndex >= 6 && pickIndex < 10 )
+               ? 1
+               : ( pickIndex >= 10 && pickIndex < 12 )
+                  ? 2
+                  : ( pickIndex === 12 )
+                     ? 3
+                     : -1;
+      if ( roundIndex === -1 )
+      {
+         return 0;
+      }
+      
+      return ( roundWinners[ roundIndex ].includes( `${conference}${seed.toString( )}` ) )
+         ? 1
+         : -1;
+   }
 
    // Update the group based on the URL
    useEffect( ( ) => {
@@ -123,29 +153,29 @@ function PlayoffBracket( )
       .then( response => {
          const winners = response.find( item => item.index === "winners" ).value;
          setWinningPicks( winners );
+         setRoundWinners( computeRoundWinners( winners ) );
 
          setPlayoffTeams( {
-            "N1": { name: response.find( item => item.index === "N1" ).value, seed: 1 },
-            "N2": { name: response.find( item => item.index === "N2" ).value, seed: 2 },
-            "N3": { name: response.find( item => item.index === "N3" ).value, seed: 3 },
-            "N4": { name: response.find( item => item.index === "N4" ).value, seed: 4 },
-            "N5": { name: response.find( item => item.index === "N5" ).value, seed: 5 },
-            "N6": { name: response.find( item => item.index === "N6" ).value, seed: 6 },
-            "N7": { name: response.find( item => item.index === "N7" ).value, seed: 7 },
-            "A1": { name: response.find( item => item.index === "A1" ).value, seed: 1 },
-            "A2": { name: response.find( item => item.index === "A2" ).value, seed: 2 },
-            "A3": { name: response.find( item => item.index === "A3" ).value, seed: 3 },
-            "A4": { name: response.find( item => item.index === "A4" ).value, seed: 4 },
-            "A5": { name: response.find( item => item.index === "A5" ).value, seed: 5 },
-            "A6": { name: response.find( item => item.index === "A6" ).value, seed: 6 },
-            "A7": { name: response.find( item => item.index === "A7" ).value, seed: 7 }
+            "N1": { name: response.find( item => item.index === "N1" ).value, conference: "N", seed: 1 },
+            "N2": { name: response.find( item => item.index === "N2" ).value, conference: "N", seed: 2 },
+            "N3": { name: response.find( item => item.index === "N3" ).value, conference: "N", seed: 3 },
+            "N4": { name: response.find( item => item.index === "N4" ).value, conference: "N", seed: 4 },
+            "N5": { name: response.find( item => item.index === "N5" ).value, conference: "N", seed: 5 },
+            "N6": { name: response.find( item => item.index === "N6" ).value, conference: "N", seed: 6 },
+            "N7": { name: response.find( item => item.index === "N7" ).value, conference: "N", seed: 7 },
+            "A1": { name: response.find( item => item.index === "A1" ).value, conference: "A", seed: 1 },
+            "A2": { name: response.find( item => item.index === "A2" ).value, conference: "A", seed: 2 },
+            "A3": { name: response.find( item => item.index === "A3" ).value, conference: "A", seed: 3 },
+            "A4": { name: response.find( item => item.index === "A4" ).value, conference: "A", seed: 4 },
+            "A5": { name: response.find( item => item.index === "A5" ).value, conference: "A", seed: 5 },
+            "A6": { name: response.find( item => item.index === "A6" ).value, conference: "A", seed: 6 },
+            "A7": { name: response.find( item => item.index === "A7" ).value, conference: "A", seed: 7 }
          } );
 
          let gamesStarted = response.find( item => item.index === "gamesStarted" );
          if ( gamesStarted && gamesStarted.value && parseInt( gamesStarted.value ) === 1 )
          {
             setGamesStarted( true );
-            switchFocus( LEADERBOARD_FOCUS );
             setPicks( winners );
          }
          else
@@ -363,6 +393,7 @@ function PlayoffBracket( )
                gamesStarted={gamesStarted}
                setCurrentBracket={setCurrentBracket}
                reloadTiebreaker={reloadTiebreaker}
+               isPickCorrect={isPickCorrect}
             />
          </div>
 

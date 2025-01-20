@@ -29,6 +29,7 @@ function Picks( props )
    const setCurrentBracket = props.setCurrentBracket;
    const gamesStarted = props.gamesStarted;
    const reloadTiebreaker = props.reloadTiebreaker;
+   const isPickCorrect = props.isPickCorrect;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
    const updatePick = ( index, value ) =>
@@ -112,6 +113,8 @@ function Picks( props )
                      pickIndex={index}
                      updatePick={updatePick}
                      playoffTeams={playoffTeams}
+                     isPickCorrect={isPickCorrect}
+                     currentBracket={currentBracket}
                   />
                )}
             </div>
@@ -123,6 +126,8 @@ function Picks( props )
                      pickIndex={index + 3}
                      updatePick={updatePick}
                      playoffTeams={playoffTeams}
+                     isPickCorrect={isPickCorrect}
+                     currentBracket={currentBracket}
                   />
                )}
             </div>
@@ -138,6 +143,8 @@ function Picks( props )
                      pickIndex={index + 6}
                      updatePick={updatePick}
                      playoffTeams={playoffTeams}
+                     isPickCorrect={isPickCorrect}
+                     currentBracket={currentBracket}
                   />
                )}
             </div>
@@ -150,6 +157,8 @@ function Picks( props )
                      pickIndex={index + 8}
                      updatePick={updatePick}
                      playoffTeams={playoffTeams}
+                     isPickCorrect={isPickCorrect}
+                     currentBracket={currentBracket}
                   />
                )}
             </div>
@@ -163,6 +172,8 @@ function Picks( props )
                   pickIndex={10}
                   updatePick={updatePick}
                   playoffTeams={playoffTeams}
+                  isPickCorrect={isPickCorrect}
+                  currentBracket={currentBracket}
                />
             </div>
             <div className="playoff-bracket-nfc">
@@ -172,6 +183,8 @@ function Picks( props )
                   pickIndex={11}
                   updatePick={updatePick}
                   playoffTeams={playoffTeams}
+                  isPickCorrect={isPickCorrect}
+                  currentBracket={currentBracket}
                />
             </div>
          </div>
@@ -188,6 +201,8 @@ function Picks( props )
                   pickIndex={12}
                   updatePick={updatePick}
                   playoffTeams={playoffTeams}
+                  isPickCorrect={isPickCorrect}
+                  currentBracket={currentBracket}
                />
 
                <div style={{display: "flex", justifyContent: "center", alignItems: "end", gap: "1em"}}>
@@ -272,6 +287,9 @@ function PlayoffBracketGame( props )
    const awayTeam = props.playoffTeams[game.awayTeam];
    const winner = game.winner;
    const pickIndex = props.pickIndex;
+   const isPickCorrect = props.isPickCorrect;
+   const currentBracket = props.currentBracket;
+
    // Place items at the end in the super bowl
    const justifyContentValue = ( pickIndex === 12 ) ? "flex-end" : "flex-start";
 
@@ -291,15 +309,37 @@ function PlayoffBracketGame( props )
       >
          {[ homeTeam, awayTeam ].map( ( team, index ) =>
          {
+            let backgroundColor = "white";
+            if ( ( winner === ( index + 1 ) ) && team && team.conference && team.seed )
+            {
+               // This team is predicted to win
+               if ( currentBracket && isPickCorrect( pickIndex, team.conference, team.seed ) === 1 )
+               {
+                  // Correct pick
+                  backgroundColor = "#4a934a";
+               }
+               else if ( currentBracket && isPickCorrect( pickIndex, team.conference, team.seed ) === -1 )
+               {
+                  // Incorrect pick
+                  backgroundColor = "#ed4337";
+               }
+               else
+               {
+                  // No result yet
+                  if ( team.name && nflTeamColors[team.name] )
+                  {
+                     backgroundColor = nflTeamColors[team.name];
+                  }
+               }
+            }
             // These styles override MUI defaults. The backgroundColor is white by default,
             // but it changes to the team's color if they're picked to win (and white text).
+            // Correct picks are colored green, incorrect picks are colored red.
             const styles = {
                borderRadius: "1em",
                justifyContent: justifyContentValue,
                fontSize: "0.7em",
-               backgroundColor: ( ( winner === ( index + 1 ) ) && team && team.name && nflTeamColors[team.name] )
-                  ? nflTeamColors[team.name]
-                  : "white",
+               backgroundColor: backgroundColor
             };
 
             // Invalid team, return empty disabled button
