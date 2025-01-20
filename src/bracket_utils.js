@@ -208,31 +208,74 @@ function computeAllGames( picks )
    };
 }
 
-// nflGameResults takes the "1011021210000" format.
-function getCurrentGames( nflGameResults )
+// Return 4 lists, each having the list of winners in the wildcard, divisional, championship, and super bowl games, respectively.
+// Teams take the form "N1", "N2", ..., "A1", "A2", ..., etc.
+function computeRoundWinners( nflGameResults )
 {
    const games = computeAllGames( nflGameResults );
+   let wildcardWinners = [ ];
+   let divisionalWinners = [ ];
+   let championshipWinners = [ ];
+   let superBowlWinners = [ ];
+
+   wildcardWinners = [
+      ...games.afcWildcardGames.map( game => ( game.winner === 1 ) ? game.homeTeam : game.awayTeam ),
+      ...games.nfcWildcardGames.map( game => ( game.winner === 1 ) ? game.homeTeam : game.awayTeam )
+   ];
+
+   divisionalWinners = [
+      ...games.afcDivisionalGames.map( game => ( game.winner === 1 ) ? game.homeTeam : game.awayTeam ),
+      ...games.nfcDivisionalGames.map( game => ( game.winner === 1 ) ? game.homeTeam : game.awayTeam )
+   ];
+
+   championshipWinners = [
+      ( games.afcChampionshipGame.winner === 1 ) ? games.afcChampionshipGame.homeTeam : games.afcChampionshipGame.awayTeam,
+      ( games.nfcChampionshipGame.winner === 1 ) ? games.nfcChampionshipGame.homeTeam : games.nfcChampionshipGame.awayTeam
+   ];
+
+   superBowlWinners = [ ( games.superBowl.winner === 1 ) ? games.superBowl.homeTeam : games.superBowl.awayTeam ];
+
+   return [ wildcardWinners, divisionalWinners, championshipWinners, superBowlWinners ];
+}
+
+// Return the current games, current picks, and offset from the beginning of the 13-character picks.
+// nflGameResults takes the "1011021210000" format.
+function computeWhatIfData( nflGameResults )
+{
+   const games = computeAllGames( nflGameResults );
+   let currentGames = [ ];
+   let currentPicks = "000000";
+   let currentPicksOffset = 0;
 
    if ( nflGameResults.substring( 0, 6 ).includes( "0" ) )
    {
       // Wild Card games
-      return [ ...games.afcWildcardGames, ...games.nfcWildcardGames ];
+      currentGames = [ ...games.afcWildcardGames, ...games.nfcWildcardGames ];
+      currentPicksOffset = 0;
    }
    else if ( nflGameResults.substring( 6, 10 ).includes( "0" ) )
    {
       // Divisional games
-      return [ ...games.afcDivisionalGames, ...games.nfcDivisionalGames ];
+      currentGames = [ ...games.afcDivisionalGames, ...games.nfcDivisionalGames ];
+      currentPicksOffset = 6;
    }
    else if ( nflGameResults.substring( 10, 12 ).includes( "0" ) )
    {
       // Championship games
-      return [ games.afcChampionshipGame, games.nfcChampionshipGame ];
+      currentGames = [ games.afcChampionshipGame, games.nfcChampionshipGame ];
+      currentPicksOffset = 10;
    }
    else
    {
       // Super Bowl
-      return [ games.superBowl ];
+      currentGames = [ games.superBowl ];
+      currentPicksOffset = 12;
    }
+
+   // Update currentPicks to incorporate the winners of current games
+   currentPicks = currentGames.map( game => game.winner.toString( ) ).join( "" );
+
+   return [ currentGames, currentPicks, currentPicksOffset ];
 }
 
 // Function to find the correct suffix for a number based on its last digit
@@ -256,4 +299,4 @@ function getSuffix( number )
    }
 }
 
-export { computeAllGames, getCurrentGames, getSuffix, emptyGames, nflTeamColors };
+export { computeAllGames, computeRoundWinners, computeWhatIfData, getSuffix, emptyGames, nflTeamColors };
