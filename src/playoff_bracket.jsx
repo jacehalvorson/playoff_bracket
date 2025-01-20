@@ -39,7 +39,7 @@ function getOrCreateDeviceID( )
 
 function PlayoffBracket( )
 {
-   const [ focus, setFocus ] = useState( PICKS_FOCUS );
+   const [ focus, setFocus ] = useState( LEADERBOARD_FOCUS );
    const [ allBrackets, setAllBrackets ] = useState( null );
    const [ picks, setPicks ] = useState( "0000000000000" );
    const [ tiebreaker, setTiebreaker ] = useState( "" );
@@ -65,8 +65,9 @@ function PlayoffBracket( )
    const [ group, setGroup ] = useState( "" );
    const [ loadStatus, setLoadStatus ] = useState( <h3>Loading brackets...</h3> );
    const [ currentBracket, setCurrentBracket ] = useState( null );
-   const [ gamesStarted, setGamesStarted ] = useState( false );
-   const [reloadTiebreaker, setReloadTiebreaker] = useState( false );
+   const [ gamesStarted, setGamesStarted ] = useState( true );
+   const [ reloadTiebreaker, setReloadTiebreaker] = useState( false );
+   const [ teamsLoaded, setTeamsLoaded ] = useState( false );
 
    const [ searchParams ] = useSearchParams( );
 
@@ -151,6 +152,8 @@ function PlayoffBracket( )
          {
             setGamesStarted( false );
          }
+         
+         setTeamsLoaded( true );
       })
       .catch( e => {
          console.error( "Error fetching teams: " + e );
@@ -284,7 +287,7 @@ function PlayoffBracket( )
                   style={{fontSize: "inherit", width: "9em"}}
                   aria-label="leaderboard button"
                >
-                  {(gamesStarted)
+                  {( gamesStarted )
                      ? "Leaderboard"
                      : "Brackets"
                   }
@@ -294,7 +297,10 @@ function PlayoffBracket( )
                   style={{fontSize: "inherit", width: "9em"}}
                   aria-label="picks button"
                >
-                  Picks
+                  {( gamesStarted )
+                     ? "Bracket"
+                     : "Picks"
+                  }
                </ToggleButton>
             </ToggleButtonGroup>
          </div>
@@ -340,6 +346,7 @@ function PlayoffBracket( )
                gamesStarted={gamesStarted}
                deviceID={deviceID}
                leaderboardEntryClick={leaderboardEntryClick}
+               teamsLoaded={teamsLoaded}
             />
             <Picks
                deviceID={deviceID}
