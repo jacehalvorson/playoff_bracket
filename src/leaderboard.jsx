@@ -1,7 +1,7 @@
 import { useEffect, useState, Fragment } from "react";
 
 import calculatePoints from "./calculate_points.js";
-import { getCurrentGames, nflTeamColors } from "./bracket_utils.js";
+import { computeWhatIfData, nflTeamColors } from "./bracket_utils.js";
 
 import "./leaderboard.css";
 
@@ -15,6 +15,7 @@ function Leaderboard( props )
    const [ currentPicksOffset, setCurrentPicksOffset ] = useState( 0 );
    const [ currentGames, setCurrentGames ] = useState( [ ] );
    const [ testPicks, setTestPicks ] = useState( "000000" );
+   const [ currentGamesLoaded, setCurrentGamesLoaded ] = useState( false );
 
    const playoffTeams = props.playoffTeams;
    const winningPicks = props.winningPicks;
@@ -25,55 +26,28 @@ function Leaderboard( props )
    const gamesStarted = props.gamesStarted;
    const deviceID = props.deviceID;
    const leaderboardEntryClick = props.leaderboardEntryClick;
+   const teamsLoaded = props.teamsLoaded;
 
    // Update the current games based on the winning picks
    useEffect( ( ) => {
-      const newCurrentGames = getCurrentGames( winningPicks );
-
-      // Set the offset where the current games are from the beginning of picks
-      switch ( newCurrentGames.length )
+      if ( !teamsLoaded )
       {
-         case 6:
-            // Wild card round
-            setCurrentPicksOffset( 0 );
-            break;
-         case 4:
-            // Divisional round
-            setCurrentPicksOffset( 6 );
-            break;
-         case 2:
-            // Conference championships
-            setCurrentPicksOffset( 10 );
-            break;
-         case 1:
-            // Super Bowl
-            setCurrentPicksOffset( 12 );
-            break;
-         default:
-            // Invalid current games - don't set offset
-            break;
+         return;
       }
 
-      // Update testPicks to incorporate the winners of current games
-      newCurrentGames.forEach( ( game, gameIndex ) =>
-      {
-         if ( game.winner !== 0 )
-         {
-            setTestPicks( testPicks =>
-            {
-               return testPicks.substring( 0, gameIndex ) + game.winner.toString( ) + testPicks.substring( gameIndex + 1 );
-            });
-         }
-      });
+      const [ newCurrentGames, currentPicks, newPicksOffset ] = computeWhatIfData( winningPicks );
 
       setCurrentGames( newCurrentGames );
-   }, [ winningPicks ] );
+      setTestPicks( currentPicks );
+      setCurrentPicksOffset( newPicksOffset );
+      setCurrentGamesLoaded( true );
+   }, [ winningPicks, teamsLoaded ] );
 
    // Update the scores when the brackets, winning entry, or test picks change
    useEffect( ( ) =>
    {
-      // If the group is unset or there brackets haven't been loaded, there is nothing to be done
-      if ( !group || !allBrackets )
+      // If the group is unset or brackets or teams haven't been loaded, there is nothing to be done
+      if ( !group || !allBrackets || !teamsLoaded )
       {
          return;
       }
@@ -98,11 +72,11 @@ function Leaderboard( props )
 
       // Use winning entry to calculate scores, but splice in test picks for the current unpicked games
       const scoreSource = winningPicks.substring( 0, currentPicksOffset ) +
-                        testPicks.substring( 0, currentGames.length ) +
-                        winningPicks.substring( currentPicksOffset + currentGames.length );
+                             testPicks.substring( 0, currentGames.length ) +
+                          winningPicks.substring( currentPicksOffset + currentGames.length );
 
       // Calculate points, max points, and super bowl winner for each bracket
-      brackets.forEach(bracket =>
+      brackets.forEach( bracket =>
       {
          if ( gamesStarted || bracket.devices.includes( deviceID ) )
          {
@@ -123,7 +97,7 @@ function Leaderboard( props )
          }
       });
 
-      // Sort first on points won, then points available, then by name, then by bracket index
+      // Sort first on max points possible, then current points, then by name, then by bracket index
       brackets.sort( ( a, b ) =>
       {
          if ( a.picks !== "0000000000000" && b.picks === "0000000000000" )
@@ -131,13 +105,13 @@ function Leaderboard( props )
             // Special case, put all empty brackets at the bottom
             return -1;
          }
-         else if ( b.points !== a.points )
-         {
-            return b.points - a.points;
-         }
          else if ( b.maxPoints !== a.maxPoints )
          {
             return b.maxPoints - a.maxPoints;
+         }
+         else if ( b.points !== a.points )
+         {
+            return b.points - a.points;
          }
          else if ( b.name !== a.name )
          {
@@ -152,7 +126,7 @@ function Leaderboard( props )
       // Set brackets global variable and empty load status (indicating success)
       setBrackets( brackets );
       setLoadStatus( <></> );
-   }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID ] );
+   }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID, teamsLoaded ] );
 
    return (
       <div id="playoff-bracket-leaderboard">
@@ -161,6 +135,11 @@ function Leaderboard( props )
          {
             currentGames.map( ( game, gameIndex ) =>
             {
+               if ( !currentGamesLoaded )
+               {
+                  // Empty fragment, equivalent to <></> but this syntax allows for a key to avoid warning
+                  return <Fragment key={gameIndex} />;
+               }
                const winner = parseInt( testPicks[ gameIndex ] );
                const isDisabled = ( winningPicks[ currentPicksOffset + gameIndex ] !== "0" ) ? true : false;
 
@@ -229,9 +208,9 @@ function Leaderboard( props )
                onClick={ ( ) => { leaderboardEntryClick( bracket ); } }
                key={ index }
             >
-               {/* Background */}
+               {/* Shining slider over user's bracket */}
                {( bracket.devices.includes( deviceID ) )
-                  ? <div className="user-bracket-background" />
+                  ? <div className="user-bracket-slider" />
                   : <></>
                }
 
