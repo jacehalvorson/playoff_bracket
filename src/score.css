@@ -1,0 +1,51 @@
+form#keep-score-entry {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    width: calc( 100vw - ( 100vw - 100% ) );
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    color: white;
+}
+
+form#keep-score-entry > h1 {
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+    margin-top: 2.5em;
+    padding: 0.5em;
+    text-align: center;
+    border: 1px solid white;
+    border-radius: 0.5em;
+    color: white;
+}
+
+form#keep-score-entry > h2 {
+    margin: 1em;
+    text-align: center;
+    color: white;
+}
+
+form#keep-score-entry > button 
+{
+    display: left;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+#red {
+    color: red;
+}
+#white {
+    color: white;
+}
+#black {
+    color: black;
+}
+
+#names {
+	display: flex;
+	gap: 20px;
+}
+
