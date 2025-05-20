@@ -39,9 +39,37 @@ function Score( )
 		}
 	};
 
+	const updateName = (person2, oldName) =>
+	{
+		let newName = prompt( "Enter a name:", oldName );
+		if ( !newName )
+		{
+			// User cancelled, return with no error
+			return;
+		}
+
+		const newData = person2.map(item => 
+		{
+			if (item.player === oldName) 
+			{
+				item.player = newName;
+				const newValues = [...item.player];
+				newValues.player = newName;
+				return { ...item, player: newName };
+			}
+			return item;
+		});
+		// Reprint the updated name.
+		setPlayer(prevItems => 
+		{
+			const newItems = [...prevItems]; // Create a shallow copy of the array
+			return newItems; // Return the new array to update the state
+		});
+	}
+
 	const listItems = player.map((person, arrayIndex) => 
 		<div>
-			<h3>{person.player}</h3>      
+			<h3 onClick={() => {updateName(player, person.player)}}>{person.player}</h3>      
 			<input
 				type="text"
 				min="0" max="999"
@@ -57,7 +85,7 @@ function Score( )
 			<NumberList numbers={person.points} />
 			<ul>
 				{person.points.map((line) => ( 
-					<li>{line}</li>
+				<li>{line}</li>
 				))}
 			</ul>
 		</div>
