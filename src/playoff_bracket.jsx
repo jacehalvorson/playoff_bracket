@@ -6,6 +6,7 @@ import Picks from "./picks.jsx";
 import { fetchAPI } from "./api_requests.js";
 import { theme } from './theme.js';
 import { computeRoundWinners } from "./bracket_utils.js";
+import ButtonLink from './button.jsx';
 
 import "./playoff_bracket.css";
 
@@ -303,8 +304,11 @@ function PlayoffBracket( )
 
    return (
       <main id="playoff-bracket"><ThemeProvider theme={theme}>
-         <h1>{ currentYear } Playoff Bracket</h1>
-
+		 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1em" }}>
+            <h1>{ currentYear } Playoff Bracket</h1>
+			{ ButtonLink("/score", "Score") }
+		 </div>
+		
          <div id="focus-selection-group">
             <ToggleButtonGroup
                onChange={focusButtonPressed}
