@@ -5,8 +5,7 @@ import "./score.css";
 function Score( )
 {
 	const [newPoint, setNewPoint] = useState('');
-	//const [points, setPoints] = useState([]);
-	const [player, setPlayer] = useState([{player: 'Trent', points: []}, {player: 'Tre', points: []}]);
+	const [players, setPlayers] = useState([{player: 'Trent', points: []}, {player: 'Tre', points: []}]);
 
 	useEffect(() => 
 	{
@@ -29,17 +28,17 @@ function Score( )
 		return(<p>Total: {sum}</p>);
 	}
 
-	const handleKeyDown = (event, person, arrayIndex) => 
+	const handleKeyDown = (event, playerIndex) => 
 	{
 		// If the enter being used, use the same as the button right next to it.
 		if (event.key === 'Enter') 
 		{
 			event.preventDefault();
-			addPoints( person, arrayIndex);
+			addPoints(playerIndex);
 		}
 	};
 
-	const updateName = (person2, oldName, setPlayer) =>
+	const updateName = (person2, oldName) =>
 	{
 		let newName = prompt( "Enter a name:", oldName );
 		if ( !newName )
@@ -48,7 +47,7 @@ function Score( )
 			return;
 		}
 
-		setPlayer(person2.map(item => 
+		setPlayers(person2.map(item => 
 		{
 			if (item.player === oldName) 
 			{
@@ -61,20 +60,35 @@ function Score( )
 		}));
 	}
 
-	const listItems = player.map((person, arrayIndex) => 
-		<div>
-			<h3 onClick={() => {updateName(player, person.player, setPlayer)}}>{person.player}</h3>      
+	const listItems = players.map((person, playerIndex) => 
+		<div key={playerIndex}>
+			<h3 onClick={() => {updateName(players, person.player)}}>{person.player}</h3>      
 			<input
 				type="text"
 				min="0" max="999"
 				size="4"
 				value={newPoint}
-				onKeyDown={(e) => { handleKeyDown(e, person, arrayIndex) }}
+				onKeyDown={(e) => { handleKeyDown(e, person, playerIndex) }}
 				onChange={(e) => setNewPoint(e.target.value)}
 			/>
 			<button 
-				onClick={ ( ) => { addPoints(person, arrayIndex, setPlayer) }} >
+				onClick={ ( ) => { addPoints(playerIndex); setNewPoint(''); }} >
 				Add 
+			</button>
+			<button 
+				/* When "Undo" is clicked, subtract the amount that was previously added. */
+				onClick={() =>
+				{
+					setPlayers(prevPlayer =>
+					{
+						if (prevPlayer[playerIndex].points)
+						{
+							prevPlayer[playerIndex].points.pop();
+						}
+						return prevPlayer;
+					});
+				}} >
+				Undo
 			</button>
 			<NumberList numbers={person.points} />
 			<ul>
@@ -88,22 +102,20 @@ function Score( )
 	//console.log('player ' + JSON.stringify(player));
 	//const [number, setNumber] = useState(0);
 	
-	const addPoints = (person, arrayIndex, setPlayer) => 
+	const addPoints = (playerIndex) => 
 	{
 		if (newPoint !== null) 
 		{
 			const newPoints = parseInt(newPoint, 10);
 			if (!isNaN(newPoints)) 
 			{
-				setPlayer(prevNewScore => {
+				setPlayers(prevNewScore => {
 					const newScore = [...prevNewScore];
 
-					newScore[arrayIndex] = {...newScore[arrayIndex], points: [...newScore[arrayIndex].points, newPoints]};
+					newScore[playerIndex] = {...newScore[playerIndex], points: [...newScore[playerIndex].points, newPoints]};
 //console.log("New ones " + JSON.stringify(newScore));
 					return newScore;
 				});
-
-				setNewPoint('');
 			} else {
 				alert('Invalid input. Please enter an integer.');
 			}
@@ -125,14 +137,14 @@ function Score( )
          return;
       }
 
-	  setPlayer(prevPoints => [...player, { player: newName, points: [] } ]); 
+	  setPlayers([...players, { player: newName, points: [] }]);
    }
 
 	const handleAction = () => 
 	{
 		if (window.confirm("Are you sure you want to reset?")) 
 		{
-			setPlayer([]);
+			setPlayers([]);
 		}	
 	};
 
