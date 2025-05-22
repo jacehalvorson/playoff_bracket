@@ -39,7 +39,7 @@ function Score( )
 		}
 	};
 
-	const updateName = (person2, oldName) =>
+	const updateName = (person2, oldName, setPlayer) =>
 	{
 		let newName = prompt( "Enter a name:", oldName );
 		if ( !newName )
@@ -48,7 +48,7 @@ function Score( )
 			return;
 		}
 
-		const newData = person2.map(item => 
+		setPlayer(person2.map(item => 
 		{
 			if (item.player === oldName) 
 			{
@@ -58,18 +58,12 @@ function Score( )
 				return { ...item, player: newName };
 			}
 			return item;
-		});
-		// Reprint the updated name.
-		setPlayer(prevItems => 
-		{
-			const newItems = [...prevItems]; // Create a shallow copy of the array
-			return newItems; // Return the new array to update the state
-		});
+		}));
 	}
 
 	const listItems = player.map((person, arrayIndex) => 
 		<div>
-			<h3 onClick={() => {updateName(player, person.player)}}>{person.player}</h3>      
+			<h3 onClick={() => {updateName(player, person.player, setPlayer)}}>{person.player}</h3>      
 			<input
 				type="text"
 				min="0" max="999"
@@ -79,7 +73,7 @@ function Score( )
 				onChange={(e) => setNewPoint(e.target.value)}
 			/>
 			<button 
-				onClick={ ( ) => { addPoints( person, arrayIndex) }} >
+				onClick={ ( ) => { addPoints(person, arrayIndex, setPlayer) }} >
 				Add 
 			</button>
 			<NumberList numbers={person.points} />
@@ -94,7 +88,7 @@ function Score( )
 	//console.log('player ' + JSON.stringify(player));
 	//const [number, setNumber] = useState(0);
 	
-	const addPoints = (person, arrayIndex) => 
+	const addPoints = (person, arrayIndex, setPlayer) => 
 	{
 		if (newPoint !== null) 
 		{
