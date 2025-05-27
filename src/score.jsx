@@ -4,9 +4,31 @@ import "./score.css";
 
 function Score( )
 {
+	function LoadUsers()
+	{
+	   let scoreUsers = localStorage.getItem( 'ScoreUsers' );
+	//console.log("Find " + JSON.stringify(scoreUsers));   
+	   if ( scoreUsers )
+	   {
+			const parsedData = JSON.parse(scoreUsers);
+			console.log("LoadUsers " + JSON.stringify(parsedData));
+			//setPlayer(prevPoints => [...player]); 
+			//setPlayer = parsedData;
+			return parsedData;
+	   }
+	   return "";
+	}
 	const [newPoint, setNewPoint] = useState('');
 	//const [points, setPoints] = useState([]);
-	const [player, setPlayer] = useState([{player: 'Trent', points: []}, {player: 'Tre', points: []}]);
+	const [player, setPlayer] = useState(LoadUsers());
+	//const [player, setPlayer] = useState([{player: 'Trent', points: []}, {player: 'Tre', points: []}]);
+
+	function SaveUsers( users ) 
+	{
+		console.log("SaveUsers " + JSON.stringify(users));   
+		localStorage.setItem('ScoreUsers', JSON.stringify(users));
+		console.log("SaveUsers2 " + JSON.stringify(localStorage.getItem('ScoreUsers')));   
+	}
 
 	useEffect(() => 
 	{
@@ -91,9 +113,6 @@ function Score( )
 		</div>
 	);
 	
-	//console.log('player ' + JSON.stringify(player));
-	//const [number, setNumber] = useState(0);
-	
 	const addPoints = (person, arrayIndex) => 
 	{
 		if (newPoint !== null) 
@@ -131,9 +150,24 @@ function Score( )
          return;
       }
 
+//console.log("1 " + JSON.stringify(player));   
 	  setPlayer(prevPoints => [...player, { player: newName, points: [] } ]); 
+//console.log("2 " + JSON.stringify([...player, { player: newName, points: [] } ]));   
+	  SaveUsers([...player, { player: newName, points: [] } ]);
    }
 
+	const clearPoints = () =>
+	{
+		if (window.confirm("Are you sure you want to clear the points?")) 
+		{
+			const updatedPlayers = player.map(item => 
+			{
+				return { ...item, points: [] };
+			});
+			setPlayer(updatedPlayers);
+		}	
+	}
+	
 	const handleAction = () => 
 	{
 		if (window.confirm("Are you sure you want to reset?")) 
@@ -148,6 +182,9 @@ function Score( )
 		<div>
 			<button onClick={ ( ) => { addName( ); }}>
 				Add User...
+			</button>
+			<button onClick={clearPoints} >
+				Clear Points...
 			</button>
 			<button onClick={handleAction} >
 				Reset...
