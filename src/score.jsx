@@ -12,15 +12,13 @@ function Score( )
 	   {
 			const parsedData = JSON.parse(scoreUsers);
 			console.log("LoadUsers " + JSON.stringify(parsedData));
-			//setPlayer(prevPoints => [...player]); 
-			//setPlayer = parsedData;
 			return parsedData;
 	   }
 		
 		// If the user doesn't have users defined in local storage, use default names
 	   return [{player: 'Trent', points: []}, {player: 'Tre', points: []}];
 	}
-	const [newPoint, setNewPoint] = useState('');
+	const [newPoints, setNewPoints] = useState([]);
 	const [players, setPlayers] = useState(LoadUsers());
 
 	function SaveUsers( users )
@@ -83,6 +81,7 @@ function Score( )
 	useEffect(() =>
 	{
 		SaveUsers(players);
+		setNewPoints(players.map(_ => ''));
 	}, [players]);
 
 	const listItems = players.map((person, playerIndex) => 
@@ -92,12 +91,31 @@ function Score( )
 				type="text"
 				min="0" max="999"
 				size="4"
-				value={newPoint}
+				value={newPoints[playerIndex]}
 				onKeyDown={(e) => { handleKeyDown(e, person, playerIndex) }}
-				onChange={(e) => setNewPoint(e.target.value)}
+				onChange={(e) => { setNewPoints(prevNewPoints => prevNewPoints.map((point, index) =>
+				{
+					if (index === playerIndex)
+					{
+						point = e.target.value;
+					}
+					return point;
+				}))}}
 			/>
 			<button 
-				onClick={ ( ) => { addPoints(playerIndex); setNewPoint(''); }} >
+				onClick={(e) =>
+				{
+					addPoints(playerIndex);
+					setNewPoints(prevNewPoints => prevNewPoints.map((point, index) =>
+					{
+						if (index === playerIndex)
+						{
+							point = e.target.value;
+						}
+						return point;
+					}))
+				}}
+			>
 				Add 
 			</button>
 			<button 
@@ -126,15 +144,15 @@ function Score( )
 	
 	const addPoints = (playerIndex) => 
 	{
-		if (newPoint !== null) 
+		if (newPoints[playerIndex]) 
 		{
-			const newPoints = parseInt(newPoint, 10);
-			if (!isNaN(newPoints)) 
+			const newPointsNum = parseInt(newPoints[playerIndex], 10);
+			if (!isNaN(newPointsNum)) 
 			{
 				setPlayers(prevPlayers => {
 					const newScore = [...prevPlayers];
 
-					newScore[playerIndex] = {...newScore[playerIndex], points: [...newScore[playerIndex].points, newPoints]};
+					newScore[playerIndex] = {...newScore[playerIndex], points: [...newScore[playerIndex].points, newPointsNum]};
 //console.log("New ones " + JSON.stringify(newScore));
 					return newScore;
 				});
