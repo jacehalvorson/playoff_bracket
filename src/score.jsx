@@ -16,14 +16,14 @@ function Score( )
 			//setPlayer = parsedData;
 			return parsedData;
 	   }
-	   return "";
+		
+		// If the user doesn't have users defined in local storage, use default names
+	   return [{player: 'Trent', points: []}, {player: 'Tre', points: []}];
 	}
 	const [newPoint, setNewPoint] = useState('');
-	//const [points, setPoints] = useState([]);
-	const [players, setPlayers] = useState([{player: 'Trent', points: []}, {player: 'Tre', points: []}]);
-	//const [player, setPlayer] = useState([{player: 'Trent', points: []}, {player: 'Tre', points: []}]);
+	const [players, setPlayers] = useState(LoadUsers());
 
-	function SaveUsers( users ) 
+	function SaveUsers( users )
 	{
 		console.log("SaveUsers " + JSON.stringify(users));   
 		localStorage.setItem('ScoreUsers', JSON.stringify(users));
@@ -79,6 +79,11 @@ function Score( )
 			return item;
 		}));
 	}
+
+	useEffect(() =>
+	{
+		SaveUsers(players);
+	}, [players]);
 
 	const listItems = players.map((person, playerIndex) => 
 		<div key={playerIndex}>
@@ -154,10 +159,13 @@ function Score( )
          return;
       }
 
-//console.log("1 " + JSON.stringify(player));   
-	  setPlayers(prevPlayers => [...prevPlayers, { player: newName, points: [] } ]); 
-//console.log("2 " + JSON.stringify([...player, { player: newName, points: [] } ]));   
-	  SaveUsers([...players, { player: newName, points: [] } ]);
+	//console.log("1 " + JSON.stringify(player));   
+		setPlayers(prevPlayers => 
+		{
+			SaveUsers([...prevPlayers, { player: newName, points: [] } ]);
+			return [...prevPlayers, { player: newName, points: [] } ]; 
+		});
+	//console.log("2 " + JSON.stringify([...player, { player: newName, points: [] } ]));   
    }
 
 	const clearPoints = () =>
