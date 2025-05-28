@@ -20,7 +20,7 @@ function Score( )
 	}
 	const [newPoint, setNewPoint] = useState('');
 	//const [points, setPoints] = useState([]);
-	const [player, setPlayer] = useState(LoadUsers());
+	const [players, setPlayers] = useState([{player: 'Trent', points: []}, {player: 'Tre', points: []}]);
 	//const [player, setPlayer] = useState([{player: 'Trent', points: []}, {player: 'Tre', points: []}]);
 
 	function SaveUsers( users ) 
@@ -61,7 +61,7 @@ function Score( )
 		}
 	};
 
-	const updateName = (person2, oldName) =>
+	const updateName = (oldName) =>
 	{
 		let newName = prompt( "Enter a name:", oldName );
 		if ( !newName )
@@ -70,14 +70,11 @@ function Score( )
 			return;
 		}
 
-		setPlayers(person2.map(item => 
+		setPlayers(prevPlayers => prevPlayers.map(item =>
 		{
 			if (item.player === oldName) 
 			{
 				item.player = newName;
-				const newValues = [...item.player];
-				newValues.player = newName;
-				return { ...item, player: newName };
 			}
 			return item;
 		}));
@@ -85,7 +82,7 @@ function Score( )
 
 	const listItems = players.map((person, playerIndex) => 
 		<div key={playerIndex}>
-			<h3 onClick={() => {updateName(players, person.player)}}>{person.player}</h3>      
+			<h3 onClick={() => {updateName(person.player)}}>{person.player}</h3>      
 			<input
 				type="text"
 				min="0" max="999"
@@ -122,15 +119,15 @@ function Score( )
 		</div>
 	);
 	
-	const addPoints = (person, arrayIndex) => 
+	const addPoints = (playerIndex) => 
 	{
 		if (newPoint !== null) 
 		{
 			const newPoints = parseInt(newPoint, 10);
 			if (!isNaN(newPoints)) 
 			{
-				setPlayers(prevNewScore => {
-					const newScore = [...prevNewScore];
+				setPlayers(prevPlayers => {
+					const newScore = [...prevPlayers];
 
 					newScore[playerIndex] = {...newScore[playerIndex], points: [...newScore[playerIndex].points, newPoints]};
 //console.log("New ones " + JSON.stringify(newScore));
@@ -158,20 +155,16 @@ function Score( )
       }
 
 //console.log("1 " + JSON.stringify(player));   
-	  setPlayer(prevPoints => [...player, { player: newName, points: [] } ]); 
+	  setPlayers(prevPlayers => [...prevPlayers, { player: newName, points: [] } ]); 
 //console.log("2 " + JSON.stringify([...player, { player: newName, points: [] } ]));   
-	  SaveUsers([...player, { player: newName, points: [] } ]);
+	  SaveUsers([...players, { player: newName, points: [] } ]);
    }
 
 	const clearPoints = () =>
 	{
 		if (window.confirm("Are you sure you want to clear the points?")) 
 		{
-			const updatedPlayers = player.map(item => 
-			{
-				return { ...item, points: [] };
-			});
-			setPlayer(updatedPlayers);
+			setPlayers(prevPlayers => prevPlayers.map(item => {return { ...item, points: [] }}));
 		}	
 	}
 	
