@@ -118,21 +118,6 @@ function Score( )
          >
             Add 
          </button>
-         <button 
-            /* When "Undo" is clicked, subtract the amount that was previously added. */
-            onClick={() =>
-            {
-               setPlayers(prevPlayer =>
-               {
-                  if (prevPlayer[playerIndex].points)
-                  {
-                     prevPlayer[playerIndex].points.pop();
-                  }
-                  return prevPlayer;
-               });
-            }} >
-            Undo
-         </button>
          <NumberList numbers={person.points} />
          <ul>
             {person.points.map((line) => ( 
