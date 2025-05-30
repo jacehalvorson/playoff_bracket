@@ -92,7 +92,7 @@ function Score( )
             min="0" max="999"
             size="4"
             value={newPoints[playerIndex]}
-            onKeyDown={(e) => { handleKeyDown(e, person, playerIndex) }}
+            onKeyDown={(e) => { handleKeyDown(e, playerIndex) }}
             onChange={(e) => { setNewPoints(prevNewPoints => prevNewPoints.map((point, index) =>
             {
                if (index === playerIndex)
