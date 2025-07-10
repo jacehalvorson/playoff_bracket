@@ -49,3 +49,6 @@ form#keep-score-entry > button
 	gap: 20px;
 }
 
+.left-aligned-heading {
+  text-align: left;
+}

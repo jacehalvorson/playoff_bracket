@@ -86,7 +86,7 @@ function Score( )
 
    const listItems = players.map((person, playerIndex) => 
       <div key={playerIndex}>
-         <h3 onClick={() => {updateName(person.player)}}>{person.player}</h3>      
+         <h3 className="left-aligned-heading" onClick={() => {updateName(person.player)}}>{person.player}</h3>      
          <input
             type="text"
             min="0" max="999"
