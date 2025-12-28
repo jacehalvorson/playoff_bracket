@@ -8,7 +8,7 @@ import "./admin.css";
 
 const apiName = "apiplayoffbrackets";
 
-const currentYear = 2025;
+const currentYear = 2026;
 
 function Admin( )
 {

@@ -130,6 +130,7 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
       })
       .catch( err =>
       {
+         console.log( err );
          if ( err.message !== "Bracket not added to group" )
          {
             console.error( err );
