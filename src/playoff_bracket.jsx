@@ -6,7 +6,6 @@ import Picks from "./picks.jsx";
 import { fetchAPI } from "./api_requests.js";
 import { theme } from './theme.js';
 import { computeRoundWinners } from "./bracket_utils.js";
-import ButtonLink from './button.jsx';
 
 import "./playoff_bracket.css";
 
@@ -24,7 +23,7 @@ const PICKS_FOCUS = 1;
 
 const apiName = 'apiplayoffbrackets';
 
-const currentYear = 2025;
+const currentYear = 2026;
 
 function getOrCreateDeviceID( ) 
 {
@@ -62,12 +61,12 @@ function PlayoffBracket( )
       "A5": { name: "Chargers", conference: "A", seed: 5 },
       "A6": { name: "Steelers", conference: "A", seed: 6 },
       "A7": { name: "Broncos", conference: "A", seed: 7 }
-    } );
+   } );
    const [ groups, setGroups ] = useState( [ ] );
    const [ group, setGroup ] = useState( "" );
    const [ loadStatus, setLoadStatus ] = useState( <h3>Loading brackets...</h3> );
    const [ currentBracket, setCurrentBracket ] = useState( null );
-   const [ gamesStarted, setGamesStarted ] = useState( true );
+   const [ gamesStarted, setGamesStarted ] = useState( false );
    const [ reloadTiebreaker, setReloadTiebreaker] = useState( false );
    const [ teamsLoaded, setTeamsLoaded ] = useState( false );
    const [ roundWinners, setRoundWinners ] = useState( [ [ ], [ ], [ ], [ ] ] );
@@ -105,7 +104,8 @@ function PlayoffBracket( )
    }
 
    // Update the group based on the URL
-   useEffect( ( ) => {
+   useEffect( ( ) =>
+   {
       let newGroup;
       const groupParam = searchParams.get( "group" );
       const lastGroup = localStorage.getItem( 'group' );
@@ -188,7 +188,6 @@ function PlayoffBracket( )
       })
       .catch( e => {
          console.error( "Error fetching teams: " + e );
-         setLoadStatus( <h3>Error fetching teams</h3> );
       });
    }, [ ] );
 
@@ -198,11 +197,14 @@ function PlayoffBracket( )
       // Brackets and groups
       fetchAPI( apiName, `/brackets/${currentYear}` )
       .then( response => {
-         // Groups
-         const groups = response.map( bracket =>
+         if ( response.length === 0 )
          {
-            return bracket.key.substring( 4 );
-         }).filter( group => /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( group ) );
+            throw new Error( `Empty response from ${apiName}/brackets/${currentYear}` );
+         }
+
+         // Groups
+         const groups = response.map( bracket => bracket.key.substring( 4 ) )
+                                .filter( group => /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( group ) );
 
          setGroups( oldGroups => [ ...new Set( [ ...oldGroups, ...groups ] ) ] );
 
@@ -304,11 +306,8 @@ function PlayoffBracket( )
 
    return (
       <main id="playoff-bracket"><ThemeProvider theme={theme}>
-		 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1em" }}>
-            <h1>{ currentYear } Playoff Bracket</h1>
-			{ ButtonLink("/score", "Score") }
-		 </div>
-		
+         <h1>{ currentYear } Playoff Bracket</h1>
+      
          <div id="focus-selection-group">
             <ToggleButtonGroup
                onChange={focusButtonPressed}

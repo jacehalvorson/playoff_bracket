@@ -2,7 +2,7 @@ import { postAPI } from "./api_requests.js";
 
 const apiName = "apiplayoffbrackets";
 
-const currentYear = 2025;
+const currentYear = 2026;
 
 const devices = [
     "019437bf-9e00-707a-a9ed-b6f3bf1ed7a3", // Trent phone (main)
