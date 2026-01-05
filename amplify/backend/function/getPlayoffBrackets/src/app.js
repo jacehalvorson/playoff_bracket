@@ -164,7 +164,6 @@ app.get(path + '/:year' + '/:group', async function(req, res)
 /************************************
 * HTTP post method for insert object *
 *************************************/
-/*
 app.post(path, async function(req, res)
 {
   if ( !req.body['key'] || !/^[0-9]{4}$/.test( req.body['key'].substring( 0, 4 ) ) )
@@ -202,7 +201,7 @@ app.post(path, async function(req, res)
     res.json({ error: err, url: req.url, body: req.body });
   }
 });
-*/
+
 /**************************************
 * HTTP remove method to delete object *
 ***************************************/
