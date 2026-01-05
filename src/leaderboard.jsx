@@ -20,6 +20,7 @@ function Leaderboard( props )
    const playoffTeams = props.playoffTeams;
    const winningPicks = props.winningPicks;
    const group = props.group;
+   const groups = props.groups;
    const allBrackets = props.allBrackets;
    const loadStatus = props.loadStatus;
    const setLoadStatus = props.setLoadStatus;
@@ -52,8 +53,9 @@ function Leaderboard( props )
          return;
       }
 
-      // Get all the brackets in the user's current group
-      let brackets = allBrackets.filter( bracket => ( bracket.group === group ) || ( group === "All" ) );
+      // Get all the brackets in the user's current group (or all without a password if "All" is selected)
+      const groupsWithNoPassword = groups.filter( groupObject => !groupObject.password ).map( groupObject => groupObject.name );
+      const brackets = allBrackets.filter( bracket => ( bracket.group === group ) || ( group === "All" && groupsWithNoPassword.includes( bracket.group ) ) );
 
       // If there are no brackets meeting this criteria, empty bracket list and notify user
       if ( brackets.length === 0 )

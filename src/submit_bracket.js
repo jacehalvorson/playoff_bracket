@@ -44,7 +44,7 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
       // First check if this device has been used in the past
       response.forEach( player =>
       {
-         if ( ( player && player.devices && player.devices.includes( deviceID ) )  )
+         if ( ( player && player.devices && player.devices.includes( deviceID ) && player.player !== "GROUP_INFO" ) )
          {
             // This device has been used by this player before
             playerFound = true;
@@ -62,7 +62,7 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
          {
             throw Error( "Bracket not added to group" );
          }
-         if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( name ) )
+         if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( name ) || name === "GROUP_INFO" )
          {
             throw Error( "Invalid Name \"" + name + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
          }

@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from 'react-router-dom';
 
 import Leaderboard from "./leaderboard.jsx";
 import Picks from "./picks.jsx";
-import { fetchAPI } from "./api_requests.js";
+import { fetchAPI, postAPI } from "./api_requests.js";
 import { theme } from './theme.js';
 import { computeRoundWinners } from "./bracket_utils.js";
 
@@ -17,6 +17,7 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { ThemeProvider } from '@mui/material/styles';
 import { v7 } from "uuid";
+import * as CryptoJS from "crypto-js";
 
 const LEADERBOARD_FOCUS = 0;
 const PICKS_FOCUS = 1;
@@ -24,6 +25,8 @@ const PICKS_FOCUS = 1;
 const apiName = 'apiplayoffbrackets';
 
 const currentYear = 2026;
+
+const secretKey = process.env.REACT_APP_SECRET_KEY || 'default_secret';
 
 function getOrCreateDeviceID( ) 
 {
@@ -63,7 +66,7 @@ function PlayoffBracket( )
       "A7": { name: "Broncos", conference: "A", seed: 7 }
    } );
    const [ groups, setGroups ] = useState( [ ] );
-   const [ group, setGroup ] = useState( "" );
+   const [ group, setGroup ] = useState( "All" );
    const [ loadStatus, setLoadStatus ] = useState( <h3>Loading brackets...</h3> );
    const [ currentBracket, setCurrentBracket ] = useState( null );
    const [ gamesStarted, setGamesStarted ] = useState( false );
@@ -103,49 +106,38 @@ function PlayoffBracket( )
          : -1;
    }
 
-   // Update the group based on the URL
-   useEffect( ( ) =>
+   const validateAndSwitchToGroup = useCallback(( targetGroup, allGroups ) =>
    {
-      let newGroup;
-      const groupParam = searchParams.get( "group" );
-      const lastGroup = localStorage.getItem( 'group' );
-
-      // Look for a group in the user's URL
-      if ( groupParam && /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( groupParam ) && groupParam !== "All" )
+      if ( targetGroup === 'All' )
       {
-         newGroup = groupParam;
-         
-         // Add the new group to the list of groups if it's not already there
-         setGroups( groups => ( groups.includes( newGroup ) )
-            ? groups
-            : [ ...groups, newGroup ]
-         );
-
-         // Set this as the default group for the user
-         localStorage.setItem( 'group', newGroup );
+         // No validation needed for this group
+         setGroup( 'All' );
+         localStorage.setItem( 'group', 'All' );
+         return;
       }
-      // Look for the group the user last selected
-      else if ( lastGroup && /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( lastGroup ) && lastGroup !== "All" )
+
+      const targetGroupObject = allGroups.find( group => group.name === targetGroup );
+      if ( !targetGroupObject )
       {
-         // User has a default group
-         newGroup = lastGroup;
-
-         // Add the new group to the list of groups if it's not already there
-         setGroups( groups => ( groups.includes( newGroup ) )
-            ? groups
-            : [ ...groups, newGroup ]
-         );
+         setLoadStatus( <h3>Unable to switch to group {targetGroup}</h3> );
+         return;
       }
-      // Default to all
+
+      // Prompt for password or bypass if this device is approved
+      if ( !targetGroupObject.password ||
+           ( targetGroupObject.devices && targetGroupObject.devices.includes( deviceID ) ) ||
+           prompt( `Enter password for group ${targetGroup}` ) === CryptoJS.AES.decrypt( targetGroupObject.password, secretKey ).toString( CryptoJS.enc.Utf8 ) )
+      {
+         setGroup( targetGroupObject.name );
+         // Set this group in local storage for next login
+         localStorage.setItem( 'group', targetGroupObject.name );
+      }
       else
       {
-         newGroup = "All";
+         alert( `Incorrect password for group ${targetGroup}` );
       }
-      
-      setGroup( newGroup );
+   }, [ deviceID ] );
 
-   }, [ searchParams ] );
-   
    // API call to fetch teams and other system info when page loads
    useEffect( ( ) =>
    {
@@ -199,43 +191,81 @@ function PlayoffBracket( )
       .then( response => {
          if ( response.length === 0 )
          {
-            throw new Error( `Empty response from ${apiName}/brackets/${currentYear}` );
+            // No groups or brackets, nothing to be done
+            setLoadStatus( <h3>No groups or brackets yet for {currentYear}</h3> );
+            return;
          }
-
-         // Groups
-         const groups = response.map( bracket => bracket.key.substring( 4 ) )
-                                .filter( group => /^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( group ) );
-
-         setGroups( oldGroups => [ ...new Set( [ ...oldGroups, ...groups ] ) ] );
-
-         // Brackets
+            
+         // Loop through entries to load groups and brackets
+         let fetchedGroups = [];
          let brackets = [];
-         response.forEach( player =>
+         response.forEach( response =>
          {
-            player.brackets.forEach((bracket, bracketIndex) =>
-               brackets.push({
-                  name: player.player,
-                  group: player.key.substring( 4 ),
-                  bracketIndex: bracketIndex,
-                  picks: bracket.picks,
-                  tiebreaker: bracket.tiebreaker,
-                  devices: player.devices,
-                  // The following 3 fields will be populated by calculatePoints.
-                  // Default to nominal values for now.
-                  points: 0,
-                  maxPoints: 0,
-                  superBowlWinner: "N1"
-               })
-            );
+            if ( response.player === "GROUP_INFO" )
+            {
+               // This is a group info object
+               fetchedGroups.push({
+                  name: response.key.substring( 4 ),
+                  password: response.encryptedPassword,
+                  devices: response.devices
+               });
+            }
+            else
+            {
+               // This is a player object that contains brackets
+               response.brackets.forEach((bracket, bracketIndex) =>
+                  brackets.push({
+                     name: response.player,
+                     group: response.key.substring( 4 ),
+                     bracketIndex: bracketIndex,
+                     picks: bracket.picks,
+                     tiebreaker: bracket.tiebreaker,
+                     devices: response.devices,
+                     // The following 3 fields will be populated by calculatePoints.
+                     // Default to nominal values for now.
+                     points: 0,
+                     maxPoints: 0,
+                     superBowlWinner: "N1"
+                  })
+               );
+            }
          });
-   
+
+         setGroups( fetchedGroups );
          setAllBrackets( brackets );
+         groupsLoaded.current = true;
       })
       .catch( e => {
-         console.error( "Error fetching brackets: " + e );
+         console.log( "Error fetching brackets:");
+         console.error( e );
          setLoadStatus( <h3>Error fetching brackets</h3> );
       });
-   }, [ reloadBrackets ] );
+   }, [ reloadBrackets, searchParams, deviceID ] );
+
+   // Select group from URL or local storage
+   const groupsLoaded = useRef( false );
+   const defaultGroupSelected = useRef( false );
+   useEffect( ( ) =>
+   {
+      // Don't run if groups aren't loaded, and don't run more than once
+      if ( !groupsLoaded.current || defaultGroupSelected.current )
+      {
+         return;
+      }
+      const groupFromUrl = searchParams.get( "group" );
+      const groupFromLocalStorage = localStorage.getItem( 'group' );
+      // Priority 1: Check for a group in the URL
+      if ( groupFromUrl )
+      {
+         validateAndSwitchToGroup( groupFromUrl, groups );
+      }
+      // Priority 2: Check for a group in local storage
+      else if ( groupFromLocalStorage )
+      {
+         validateAndSwitchToGroup( groupFromLocalStorage, groups );
+      }
+      defaultGroupSelected.current = true;
+   }, [ searchParams, groups, validateAndSwitchToGroup ] );
 
    const focusButtonPressed = ( event, newFocus ) =>
    {
@@ -289,9 +319,34 @@ function PlayoffBracket( )
          return;
       }
 
-      setGroups( groups => [ ...groups, newGroup ] );
-      setGroup( newGroup );
-      localStorage.setItem( 'group', newGroup );
+      let groupPassword = prompt( "Enter a group password:" );
+      if ( !groupPassword )
+      {
+         // User cancelled, return with no error
+         return;
+      }
+
+      let groupInfo = {
+         key: `${currentYear}${newGroup}`,
+         player: "GROUP_INFO",
+         password: CryptoJS.AES.encrypt( groupPassword, secretKey ).toString( ),
+         devices: [ deviceID ]
+      };
+
+      // Send POST request to database API with this data
+      postAPI( apiName, "/brackets", groupInfo )
+      .then( response =>
+      {
+         setGroups( groups => [ ...groups, newGroup ] );
+         setGroup( newGroup );
+         localStorage.setItem( 'group', newGroup );
+         setReloadBrackets( oldValue => !oldValue );
+      })
+      .catch( err =>
+      {
+         console.error( err );
+         alert("Failed to create group");
+      });
    }
 
    const leaderboardEntryClick = ( bracket ) =>
@@ -353,15 +408,14 @@ function PlayoffBracket( )
                      }
                      else
                      {
-                        localStorage.setItem( 'group', event.target.value );
-                        setGroup( event.target.value )
+                        validateAndSwitchToGroup( event.target.value, groups );
                      }
-                  } }
+                  }}
                   style={{ color: "white" }}
                   autoWidth
                >
                   <MenuItem value={"All"}> All </MenuItem>
-                  { groups.map( ( group, index ) => <MenuItem value={group} key={index}> {group} </MenuItem> )}
+                  { groups.map( ( group, index ) => <MenuItem value={group.name} key={index}> {group.name} </MenuItem> )}
                   <MenuItem value={"+ Create New"}> + Create New </MenuItem>
                </Select>
             </FormControl>
@@ -373,6 +427,7 @@ function PlayoffBracket( )
                winningPicks={winningPicks}
                playoffTeams={playoffTeams}
                group={group}
+               groups={groups}
                allBrackets={allBrackets}
                loadStatus={loadStatus}
                setLoadStatus={setLoadStatus}
