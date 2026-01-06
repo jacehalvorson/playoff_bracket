@@ -78,6 +78,11 @@ function PlayoffBracket( )
    const [ targetGroupObject, setTargetGroupObject ] = useState( { name: "", password: "", devices: [ ] } );
    const [ isIncorrectPassword, setIsIncorrectPassword ] = useState( false );
    const [ passwordInput, setPasswordInput ] = useState( "" );
+   const [ isNewGroupWindowOpen, setIsNewGroupWindowOpen ] = useState( false );
+   const [ newGroupNameInput, setNewGroupNameInput ] = useState( "" );
+   const [ newGroupPasswordInput, setNewGroupPasswordInput ] = useState( "" );
+   const [ newGroupStatus, setNewGroupStatus ] = useState( null );
+
    const [ searchParams ] = useSearchParams( );
    const deviceID = getOrCreateDeviceID( );
 
@@ -304,53 +309,8 @@ function PlayoffBracket( )
 
    const addNewGroup = ( ) =>
    {
-      let newGroup = prompt( "Enter a group name:" );
-      if ( !newGroup )
-      {
-         // User cancelled, return with no error
-         return;
-      }
-      if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( newGroup ) )
-      {
-         switchFocus( LEADERBOARD_FOCUS );
-         setLoadStatus( <h3>Invalid group name "{newGroup}" - Must be 20 or less of the following characters: {"A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-"}</h3> );
-         return;
-      }
-      if ( groups.includes( newGroup ) || newGroup === "All" )
-      {
-         switchFocus( LEADERBOARD_FOCUS );
-         setLoadStatus( <h3>Group "{newGroup}" already exists</h3> );
-         return;
-      }
-
-      let groupPassword = prompt( "Enter a group password:" );
-      if ( !groupPassword )
-      {
-         // User cancelled, return with no error
-         return;
-      }
-
-      let groupInfo = {
-         key: `${currentYear}${newGroup}`,
-         player: "GROUP_INFO",
-         encryptedPassword: CryptoJS.AES.encrypt( groupPassword, secretKey ).toString( ),
-         devices: [ deviceID ]
-      };
-
-      // Send POST request to database API with this data
-      postAPI( apiName, "/brackets", groupInfo )
-      .then( response =>
-      {
-         setGroups( groups => [ ...groups, newGroup ] );
-         setGroup( newGroup );
-         localStorage.setItem( 'group', newGroup );
-         setReloadBrackets( oldValue => !oldValue );
-      })
-      .catch( err =>
-      {
-         console.error( err );
-         alert("Failed to create group");
-      });
+      // Open the "Create New Group" popup
+      setIsNewGroupWindowOpen( true );
    }
 
    const leaderboardEntryClick = ( bracket ) =>
@@ -420,6 +380,66 @@ function PlayoffBracket( )
          handlePasswordSubmission( );
       }
    };
+
+   const handleNewGroupSubmission = ( ) =>
+   {
+      let newGroup = newGroupNameInput;
+      let groupPassword = newGroupPasswordInput;
+
+      if ( !newGroup )
+      {
+         // User cancelled, return with no error
+         return;
+      }
+      if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( newGroup ) )
+      {
+         switchFocus( LEADERBOARD_FOCUS );
+         setNewGroupStatus( `Invalid group name "${newGroup}" - Must be 20 or less of the following characters: {"A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()\`_-}` );
+         return;
+      }
+      if ( groups.filter( item => item.name === newGroup ).length > 0 || newGroup === "All" )
+      {
+         switchFocus( LEADERBOARD_FOCUS );
+         setNewGroupStatus( `Group "${newGroup}" already exists` );
+         return;
+      }
+
+      if ( !groupPassword )
+      {
+         // User cancelled, return with no error
+         return;
+      }
+
+      let groupInfo = {
+         key: `${currentYear}${newGroup}`,
+         player: "GROUP_INFO",
+         encryptedPassword: CryptoJS.AES.encrypt( groupPassword, secretKey ).toString( ),
+         devices: [ deviceID ]
+      };
+
+      // Send POST request to database API with this data
+      postAPI( apiName, "/brackets", groupInfo )
+      .then( response =>
+      {
+         setGroups( groups => [ ...groups, newGroup ] );
+         setGroup( newGroup );
+         localStorage.setItem( 'group', newGroup );
+         setIsNewGroupWindowOpen( false );
+         setReloadBrackets( oldValue => !oldValue );
+      })
+      .catch( err =>
+      {
+         console.error( err );
+         alert("Failed to create group");
+      });
+   }
+
+   const handleNewGroupEnter = ( e ) => {
+      if ( e.key === 'Enter' )
+      {
+         handleNewGroupSubmission( );
+      }
+   }
 
    return (
       <main id="playoff-bracket"><ThemeProvider theme={theme}>
@@ -581,6 +601,87 @@ function PlayoffBracket( )
               {( isIncorrectPassword ) ? "Try Again" : "Submit" }
             </button>
           </div>
+        </CustomPopup>
+
+         {/* Create New Group Popup */}
+        <CustomPopup
+          isOpen={isNewGroupWindowOpen}
+          onClose={( ) => {setIsNewGroupWindowOpen( false ); setNewGroupStatus( "" );}}
+          maxWidth="600px"
+        >
+          <h2 style={{ marginTop: 0, marginBottom: '8px', fontSize: '28px', fontWeight: '700' }}>
+            New Group
+          </h2>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+               <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
+                     Group Name
+                  </label>
+                  <input
+                     type="text"
+                     style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        border: '2px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                     }}
+                     onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                     onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                     onKeyDown={handleNewGroupEnter}
+                     onChange={(e) => setNewGroupNameInput(e.target.value)}
+                     ref={passwordInputRef}
+                  />
+               </div>
+               <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
+                     Group Password
+                  </label>
+                  <input
+                     type="password"
+                     style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        border: '2px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                     }}
+                     onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                     onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                     onKeyDown={handleNewGroupEnter}
+                     onChange={(e) => setNewGroupPasswordInput(e.target.value)}
+                     ref={passwordInputRef}
+                  />
+               </div>
+
+               <button
+                  style={{
+                     padding: '14px 24px',
+                     fontSize: '16px',
+                     fontWeight: '600',
+                     border: 'none',
+                     borderRadius: '8px',
+                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                     color: 'white',
+                     cursor: 'pointer',
+                     transition: 'transform 0.2s',
+                     marginTop: '8px'
+                  }}
+                  onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
+                  onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+                  onClick={handleNewGroupSubmission}
+                  ref={passwordSubmitButtonRef}
+               >
+                  {( isIncorrectPassword ) ? "Try Again" : "Submit" }
+               </button>
+
+               {( newGroupStatus ) ? <h3 style={{color: "red"}}>{newGroupStatus}</h3> : <></>}
+            </div>
         </CustomPopup>
 
          <div id="playoff-bracket-background-picture" />
