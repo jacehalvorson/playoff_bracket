@@ -205,7 +205,7 @@ app.post(path, async function(req, res)
 /**************************************
 * HTTP remove method to delete object *
 ***************************************/
-/*
+
 app.delete(path + '/:year' + '/:group' + '/:player', async function(req, res)
 {
   const params = {};
@@ -262,7 +262,6 @@ app.delete(path + '/:year' + '/:group' + '/:player', async function(req, res)
     res.json({error: err, url: req.url});
   }
 });
-*/
 
 app.listen(3000, function() {
   console.log("App started")

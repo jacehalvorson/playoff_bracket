@@ -207,7 +207,7 @@ function Leaderboard( props )
          {loadStatus}
          {brackets.map( ( bracket, index ) =>
             <div className={"playoff-bracket-leaderboard-entry" + ( ( bracket.devices.includes( deviceID ) ) ? " user-bracket" : "" )}
-               onClick={ ( ) => { leaderboardEntryClick( bracket ); } }
+               onClick={ ( ) => { if ( bracket.devices.includes( deviceID ) ) leaderboardEntryClick( bracket ); } }
                key={ index }
             >
                {/* Shining slider over user's bracket */}
