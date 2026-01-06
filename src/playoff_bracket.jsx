@@ -367,6 +367,43 @@ function PlayoffBracket( )
          localStorage.setItem( 'group', targetGroupObject.name );
          // Close popup
          setIsPasswordWindowOpen( false );
+
+         // Add this device to the group's approved devices
+         let updatedDevices = targetGroupObject.devices || [];
+         if ( !updatedDevices.includes( deviceID ) )
+         {
+            updatedDevices.push( deviceID );
+
+            let groupInfo = {
+               key: `${currentYear}${targetGroupObject.name}`,
+               player: "GROUP_INFO",
+               encryptedPassword: targetGroupObject.password,
+               devices: updatedDevices
+            };
+
+            // Send POST request to database API with this data
+            postAPI( apiName, "/brackets", groupInfo )
+            .then( response =>
+            {
+               // Successfully updated group info, update the local version as well
+               setGroups( groups => groups.map( group =>
+               {
+                  if ( group.name === targetGroupObject.name )
+                  {
+                     return {
+                        ...group,
+                        devices: updatedDevices
+                     };
+                  }
+                  return group;
+               }));
+            })
+            .catch( err =>
+            {
+               console.error( err );
+               alert("Failed to update group info with new device");
+            });
+         }
       }
       else
       {
@@ -388,7 +425,7 @@ function PlayoffBracket( )
 
       if ( !newGroup )
       {
-         // User cancelled, return with no error
+         setNewGroupStatus( "Enter a Group Name" );
          return;
       }
       if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( newGroup ) )
@@ -406,7 +443,7 @@ function PlayoffBracket( )
 
       if ( !groupPassword )
       {
-         // User cancelled, return with no error
+         setNewGroupStatus( "Enter a Group Password" );
          return;
       }
 
