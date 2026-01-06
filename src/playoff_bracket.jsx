@@ -586,7 +586,7 @@ function PlayoffBracket( )
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {( isIncorrectPassword )
             ?
-               <h3>Incorrect Password</h3>
+               <h3 style={{ fontSize: '20px' }}>Incorrect Password</h3>
             :
                <div>
                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
