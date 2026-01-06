@@ -67,7 +67,7 @@ function PlayoffBracket( )
       "A7": { name: "Broncos", conference: "A", seed: 7 }
    } );
    const [ groups, setGroups ] = useState( [ ] );
-   const [ group, setGroup ] = useState( "All" );
+   const [ group, setGroup ] = useState( "" );
    const [ loadStatus, setLoadStatus ] = useState( <h3>Loading brackets...</h3> );
    const [ currentBracket, setCurrentBracket ] = useState( null );
    const [ gamesStarted, setGamesStarted ] = useState( false );
@@ -533,7 +533,6 @@ function PlayoffBracket( )
                   style={{ color: "white" }}
                   autoWidth
                >
-                  <MenuItem value={"All"}> All </MenuItem>
                   { groups.map( ( group, index ) => <MenuItem value={group.name} key={index}> {group.name} </MenuItem> )}
                   <MenuItem value={"+ Create New"}> + Create New </MenuItem>
                </Select>
