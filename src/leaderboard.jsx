@@ -128,7 +128,7 @@ function Leaderboard( props )
       // Set brackets global variable and empty load status (indicating success)
       setBrackets( brackets );
       setLoadStatus( <></> );
-   }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID, teamsLoaded ] );
+   }, [ allBrackets, currentGames, currentPicksOffset, testPicks, winningPicks, group, setLoadStatus, gamesStarted, deviceID, teamsLoaded, groups ] );
 
    return (
       <div id="playoff-bracket-leaderboard">

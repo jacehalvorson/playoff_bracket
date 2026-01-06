@@ -6,6 +6,7 @@ import Picks from "./picks.jsx";
 import { fetchAPI, postAPI } from "./api_requests.js";
 import { theme } from './theme.js';
 import { computeRoundWinners } from "./bracket_utils.js";
+import CustomPopup from "./Popup.jsx";
 
 import "./playoff_bracket.css";
 
@@ -73,9 +74,11 @@ function PlayoffBracket( )
    const [ reloadTiebreaker, setReloadTiebreaker] = useState( false );
    const [ teamsLoaded, setTeamsLoaded ] = useState( false );
    const [ roundWinners, setRoundWinners ] = useState( [ [ ], [ ], [ ], [ ] ] );
-
+   const [ isPasswordWindowOpen, setIsPasswordWindowOpen ] = useState( false );
+   const [ targetGroupObject, setTargetGroupObject ] = useState( { name: "", password: "", devices: [ ] } );
+   const [ isIncorrectPassword, setIsIncorrectPassword ] = useState( false );
+   const [ passwordInput, setPasswordInput ] = useState( "" );
    const [ searchParams ] = useSearchParams( );
-
    const deviceID = getOrCreateDeviceID( );
 
    // Return 0 for unpicked, 1 for correct, and -1 for incorrect
@@ -123,10 +126,9 @@ function PlayoffBracket( )
          return;
       }
 
-      // Prompt for password or bypass if this device is approved
+      // Bypass the password if the group doesn't have a password or if the device is approved
       if ( !targetGroupObject.password ||
-           ( targetGroupObject.devices && targetGroupObject.devices.includes( deviceID ) ) ||
-           prompt( `Enter password for group ${targetGroup}` ) === CryptoJS.AES.decrypt( targetGroupObject.password, secretKey ).toString( CryptoJS.enc.Utf8 ) )
+           ( targetGroupObject.devices && targetGroupObject.devices.includes( deviceID ) ))
       {
          setGroup( targetGroupObject.name );
          // Set this group in local storage for next login
@@ -134,7 +136,9 @@ function PlayoffBracket( )
       }
       else
       {
-         alert( `Incorrect password for group ${targetGroup}` );
+         // Prompt for password
+         setTargetGroupObject( targetGroupObject );
+         setIsPasswordWindowOpen( true );
       }
    }, [ deviceID ] );
 
@@ -329,7 +333,7 @@ function PlayoffBracket( )
       let groupInfo = {
          key: `${currentYear}${newGroup}`,
          player: "GROUP_INFO",
-         password: CryptoJS.AES.encrypt( groupPassword, secretKey ).toString( ),
+         encryptedPassword: CryptoJS.AES.encrypt( groupPassword, secretKey ).toString( ),
          devices: [ deviceID ]
       };
 
@@ -358,6 +362,64 @@ function PlayoffBracket( )
       setGroup( bracket.group );
       switchFocus( PICKS_FOCUS );
    }
+
+   const passwordSubmitButtonRef = useRef( null );
+   useEffect( ( ) =>
+   {
+      if (isIncorrectPassword) {
+         // Delay focus until after DOM updates & animations
+         const timer = setTimeout(() => {
+         if (passwordSubmitButtonRef.current) {
+            passwordSubmitButtonRef.current.focus();
+         }
+         }, 0); // You can increase delay if you have animations (e.g., 300ms)
+   
+         return () => clearTimeout(timer); // Cleanup on state change
+      }
+      else {
+         if (passwordInputRef.current) {
+            passwordInputRef.current.focus();
+         }
+      }
+   }, [ isIncorrectPassword ] );
+
+   const passwordInputRef = useRef( null );
+   useEffect( ( ) =>
+   {
+      if (isPasswordWindowOpen) {
+         // Delay focus until after DOM updates & animations
+         const timer = setTimeout(() => {
+         if (passwordInputRef.current) {
+            passwordInputRef.current.focus();
+         }
+         }, 0); // You can increase delay if you have animations (e.g., 300ms)
+
+         return () => clearTimeout(timer); // Cleanup on state change
+      }
+   }, [ isPasswordWindowOpen ] );
+
+   const handlePasswordSubmission = ( ) =>
+   {
+      if ( passwordInput === CryptoJS.AES.decrypt( targetGroupObject.password, secretKey ).toString( CryptoJS.enc.Utf8 ) )
+      {
+         setGroup( targetGroupObject.name );
+         // Set this group in local storage for next login
+         localStorage.setItem( 'group', targetGroupObject.name );
+         // Close popup
+         setIsPasswordWindowOpen( false );
+      }
+      else
+      {
+         setIsIncorrectPassword( true );
+      }
+   };
+
+   const handlePasswordEnter = ( e ) => {
+      if ( e.key === 'Enter' )
+      {
+         handlePasswordSubmission( );
+      }
+   };
 
    return (
       <main id="playoff-bracket"><ThemeProvider theme={theme}>
@@ -454,6 +516,72 @@ function PlayoffBracket( )
                isPickCorrect={isPickCorrect}
             />
          </div>
+
+         {/* Group password Popup */}
+        <CustomPopup
+          isOpen={isPasswordWindowOpen}
+          onClose={( ) => {setIsPasswordWindowOpen( false ); setIsIncorrectPassword( false );}}
+          maxWidth="600px"
+        >
+          <h2 style={{ marginTop: 0, marginBottom: '8px', fontSize: '28px', fontWeight: '700' }}>
+            Switching to group "{targetGroupObject.name}"
+          </h2>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {( isIncorrectPassword )
+            ?
+               <h3>Incorrect Password</h3>
+            :
+               <div>
+               <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
+                  Password
+               </label>
+               <input
+                  type="password"
+                  style={{
+                     width: '100%',
+                     padding: '12px 16px',
+                     border: '2px solid #e5e7eb',
+                     borderRadius: '8px',
+                     fontSize: '16px',
+                     transition: 'border-color 0.2s',
+                     boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                  onKeyDown={handlePasswordEnter}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  ref={passwordInputRef}
+               />
+               </div>
+            }
+
+            <button
+              style={{
+                padding: '14px 24px',
+                fontSize: '16px',
+                fontWeight: '600',
+                border: 'none',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'transform 0.2s',
+                marginTop: '8px'
+              }}
+              onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
+              onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+              onClick={() =>
+              {
+                  if ( isIncorrectPassword ) { setIsIncorrectPassword( false ); }
+                  else { handlePasswordSubmission( ); }
+              }}
+              ref={passwordSubmitButtonRef}
+            >
+              {( isIncorrectPassword ) ? "Try Again" : "Submit" }
+            </button>
+          </div>
+        </CustomPopup>
 
          <div id="playoff-bracket-background-picture" />
       </ThemeProvider></main>
