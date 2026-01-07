@@ -82,6 +82,7 @@ function PlayoffBracket( )
    const [ newGroupNameInput, setNewGroupNameInput ] = useState( "" );
    const [ newGroupPasswordInput, setNewGroupPasswordInput ] = useState( "" );
    const [ newGroupStatus, setNewGroupStatus ] = useState( null );
+   const [ deviceDisplayNameInGroup, setDeviceDisplayNameInGroup ] = useState( "" );
 
    const [ searchParams ] = useSearchParams( );
    const deviceID = getOrCreateDeviceID( );
@@ -275,6 +276,20 @@ function PlayoffBracket( )
       }
       defaultGroupSelected.current = true;
    }, [ searchParams, groups, validateAndSwitchToGroup ] );
+
+   // Update the device display name in the group when it changes or the group changes
+   useEffect( ( ) =>
+   {
+      if ( allBrackets && allBrackets.length > 0 && group )
+      {
+         allBrackets.forEach( bracket => {
+            if ( bracket.group === group && bracket.devices && bracket.devices.includes( deviceID ) )
+            {
+               setDeviceDisplayNameInGroup( bracket.name );
+            }
+         });
+      }
+   }, [ group, allBrackets, deviceID, reloadBrackets ] );
 
    const focusButtonPressed = ( event, newFocus ) =>
    {
@@ -570,6 +585,8 @@ function PlayoffBracket( )
                setCurrentBracket={setCurrentBracket}
                reloadTiebreaker={reloadTiebreaker}
                isPickCorrect={isPickCorrect}
+               deviceDisplayNameInGroup={deviceDisplayNameInGroup}
+               setDeviceDisplayNameInGroup={setDeviceDisplayNameInGroup}
             />
          </div>
 
@@ -580,7 +597,7 @@ function PlayoffBracket( )
           maxWidth="600px"
         >
           <h2 style={{ marginTop: 0, marginBottom: '8px', fontSize: '28px', fontWeight: '700' }}>
-            Switching to group "{targetGroupObject.name}"
+            Join Group "{targetGroupObject.name}"
           </h2>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
