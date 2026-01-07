@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { computeAllGames, getSuffix, emptyGames, nflTeamColors } from "./bracket_utils.js"
 import { submitBracket, deleteBracket, changeDisplayName } from "./submit_bracket.js";
+import CustomPopup from "./Popup.jsx";
 
 import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -14,6 +15,10 @@ function Picks( props )
 {
    const [games, setGames] = useState( emptyGames );
    const [submitStatus, setSubmitStatus] = useState( "" );
+   const [isBracketSubmissionWindowOpen, setIsBracketSubmissionWindowOpen] = useState( false );
+   const [displayName, setDisplayName] = useState( "" );
+   const [bracketSubmissionStatus, setBracketSubmissionStatus] = useState( "" );
+   const [isChangeDisplayNameWindowOpen, setIsChangeDisplayNameWindowOpen] = useState( false );
 
    const currentYear = props.currentYear
    const deviceID = props.deviceID;
@@ -30,6 +35,8 @@ function Picks( props )
    const gamesStarted = props.gamesStarted;
    const reloadTiebreaker = props.reloadTiebreaker;
    const isPickCorrect = props.isPickCorrect;
+   const deviceDisplayNameInGroup = props.deviceDisplayNameInGroup;
+   const setDeviceDisplayNameInGroup = props.setDeviceDisplayNameInGroup;
 
    // Used by buttons to select teams. Error checks the new value and updates picks
    const updatePick = ( index, value ) =>
@@ -68,6 +75,88 @@ function Picks( props )
       setSubmitStatus( "" );
    }, [ picks, playoffTeams ] );
 
+   const handleBracketSubmission = ( ) =>
+   {
+      if ( !displayName )
+      {
+         setBracketSubmissionStatus( "Enter a Display Name" );
+         return;
+      }
+      if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( displayName ) || displayName === "GROUP_INFO" )
+      {
+         setBracketSubmissionStatus( "Invalid Name \"" + displayName + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
+         return;
+      }
+      if ( !group || group === "All" )
+      {
+         setBracketSubmissionStatus( "Select a group to submit this bracket" );
+         return;
+      }
+
+      // Submit the bracket
+      submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setReloadBrackets, currentYear, group, switchFocus, currentBracket, displayName, setDeviceDisplayNameInGroup );
+      // Close the dialog
+      setIsBracketSubmissionWindowOpen( false );
+   }
+
+   const handleChangeDisplayName = ( ) =>
+   {
+      if ( !displayName )
+      {
+         // User cancelled, exit with no error
+         return;
+      }
+      
+      if ( displayName === currentBracket.name )
+      {
+         setBracketSubmissionStatus( "New name is the same as the old name" );
+         return;
+      }
+      
+      if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( displayName ) || displayName === "GROUP_INFO" )
+      {
+         // Invalid name
+         setBracketSubmissionStatus( "Invalid Name \"" + displayName + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
+         return;
+      }
+
+      // Change the display name
+      changeDisplayName( setSubmitStatus, currentYear, group, currentBracket.name, setReloadBrackets, switchFocus, displayName );
+      // Close the dialog
+      setIsChangeDisplayNameWindowOpen( false );
+      setBracketSubmissionStatus( "" );
+   }
+
+   const displayNameInputRef = useRef( null );
+   useEffect( ( ) =>
+   {
+      if (isBracketSubmissionWindowOpen) {
+         // Delay focus until after DOM updates & animations
+         const timer = setTimeout(() => {
+         if (displayNameInputRef.current) {
+            displayNameInputRef.current.focus();
+         }
+         }, 0); // You can increase delay if you have animations (e.g., 300ms)
+   
+         return () => clearTimeout(timer); // Cleanup on state change
+      }
+   }, [ isBracketSubmissionWindowOpen ] );
+
+   const changeDiplayNameInputRef = useRef( null );
+   useEffect( ( ) =>
+   {
+      if (isChangeDisplayNameWindowOpen) {
+         // Delay focus until after DOM updates & animations
+         const timer = setTimeout(() => {
+         if (changeDiplayNameInputRef.current) {
+            changeDiplayNameInputRef.current.focus();
+         }
+         }, 0); // You can increase delay if you have animations (e.g., 300ms)
+   
+         return () => clearTimeout(timer); // Cleanup on state change
+      }
+   }, [ isChangeDisplayNameWindowOpen ] );
+
    return (
       <div id="playoff-bracket-picks">
          <p style={{textAlign: "center", fontSize: "4em", maxWidth: "70vw"}}>
@@ -95,12 +184,20 @@ function Picks( props )
          </p>
          {
          ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) && currentBracket.name )
-            ? <Button
-               variant="text"
-               onClick={ ( ) => changeDisplayName( setSubmitStatus, currentYear, group, currentBracket.name, setReloadBrackets, switchFocus ) }
-            >
-               Change Display Name
-            </Button>
+            ? <>
+               <Button
+                  variant="text"
+                  onClick={ ( ) => { setIsChangeDisplayNameWindowOpen( true ); setBracketSubmissionStatus( "" ); }}
+               >
+                  Change Display Name
+               </Button>
+               <Button
+                  variant="text"
+                  onClick={ ( ) => { setCurrentBracket( null ); }}
+               >
+                  Create Another Bracket
+               </Button>
+            </>
             : <></>
          }
          <div id="playoff-bracket-wildcard-games">
@@ -250,10 +347,16 @@ function Picks( props )
                                  // This button is a Delete button, delete the bracket
                                  deleteBracket( setSubmitStatus, deviceID, setReloadBrackets, currentYear, switchFocus, currentBracket );
                               }
+                              else if ( !deviceDisplayNameInGroup )
+                              {
+                                 // Open a dialog to prompt for display name
+                                 setIsBracketSubmissionWindowOpen( true );
+                                 // Bracket will be submitted in a click handler within the dialog
+                              }
                               else
                               {
-                                 // This button is a Submit/Save button, submit/save the bracket
-                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setReloadBrackets, currentYear, group, switchFocus, currentBracket );
+                                 // This button is a Submit/Save button and the display name is is already known, submit/save the bracket
+                                 submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setReloadBrackets, currentYear, group, switchFocus, currentBracket, deviceDisplayNameInGroup, setDeviceDisplayNameInGroup );
                               }
                            }}
                         >
@@ -276,6 +379,120 @@ function Picks( props )
                </h2>
             </div>
          </div>
+
+         {/* Display Name Entry Popup */}
+         <CustomPopup
+            isOpen={isBracketSubmissionWindowOpen}
+            onClose={( ) => {setIsBracketSubmissionWindowOpen( false ); setBracketSubmissionStatus( "" );}}
+            maxWidth="600px"
+         >
+            <h2 style={{ marginTop: 0, marginBottom: '16px', fontSize: '28px', fontWeight: '700' }}>
+               Enter your Display Name:
+            </h2>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+               <div>
+                  <input
+                     type="text"
+                     style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        border: '2px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                     }}
+                     onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                     onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                     onKeyDown={(e) => { if (e.key === 'Enter') { handleBracketSubmission( ); } }}
+                     onChange={(e) => setDisplayName(e.target.value)}
+                     ref={displayNameInputRef}
+                  />
+               </div>
+
+               <button
+                  style={{
+                     padding: '14px 24px',
+                     fontSize: '16px',
+                     fontWeight: '600',
+                     border: 'none',
+                     borderRadius: '8px',
+                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                     color: 'white',
+                     cursor: 'pointer',
+                     transition: 'transform 0.2s',
+                     marginTop: '8px'
+                  }}
+                  onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
+                  onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+                  onClick={handleBracketSubmission}
+               >
+                  Submit
+               </button>
+
+               <h2 style={{color: 'red'}}>
+                  {bracketSubmissionStatus}
+               </h2>
+            </div>
+         </CustomPopup>
+
+         {/* Change Display Name Entry Popup */}
+         <CustomPopup
+            isOpen={isChangeDisplayNameWindowOpen}
+            onClose={( ) => {setIsChangeDisplayNameWindowOpen( false ); setBracketSubmissionStatus( "" );}}
+            maxWidth="600px"
+         >
+            <h2 style={{ marginTop: 0, marginBottom: '16px', fontSize: '28px', fontWeight: '700' }}>
+               Enter your Display Name:
+            </h2>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+               <div>
+                  <input
+                     type="text"
+                     style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        border: '2px solid #e5e7eb',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
+                     }}
+                     onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                     onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                     onKeyDown={(e) => { if (e.key === 'Enter') { handleChangeDisplayName( ); } }}
+                     onChange={(e) => setDisplayName(e.target.value)}
+                     ref={changeDiplayNameInputRef}
+                  />
+               </div>
+
+               <button
+                  style={{
+                     padding: '14px 24px',
+                     fontSize: '16px',
+                     fontWeight: '600',
+                     border: 'none',
+                     borderRadius: '8px',
+                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                     color: 'white',
+                     cursor: 'pointer',
+                     transition: 'transform 0.2s',
+                     marginTop: '8px'
+                  }}
+                  onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
+                  onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+                  onClick={handleChangeDisplayName}
+               >
+                  Submit
+               </button>
+
+               <h2 style={{color: 'red'}}>
+                  {bracketSubmissionStatus}
+               </h2>
+            </div>
+         </CustomPopup>
       </div>
    );
 }

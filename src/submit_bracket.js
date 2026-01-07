@@ -1,14 +1,12 @@
 import { fetchAPI, postAPI, deleteAPI } from "./api_requests.js";
-import { getSuffix } from "./bracket_utils.js";
 
 const apiName = "apiplayoffbrackets";
 
-export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setReloadBrackets, currentYear, group, switchFocus, currentBracket )
+export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreaker, setReloadBrackets, currentYear, group, switchFocus, currentBracket, displayName, setDeviceDisplayNameInGroup )
 {
    let brackets = [ ];
    let devices = [ ];
    let playerFound = false;
-   let name = "";
    let bracket = {
       picks: picks,
       tiebreaker: tiebreaker
@@ -41,49 +39,27 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
    fetchAPI( apiName, `/brackets/${encodeURIComponent( currentYear )}/${encodeURIComponent( group )}` )
    .then( response =>
    {
-      // First check if this device has been used in the past
+      // First check if there are any existing brackets for this player
       response.forEach( player =>
       {
          if ( ( player && player.devices && player.devices.includes( deviceID ) && player.player !== "GROUP_INFO" ) )
          {
             // This device has been used by this player before
             playerFound = true;
-            name = player.player;
             brackets = player.brackets;
             devices = player.devices;
+            return true; // break
+         }
+
+         if ( player.player === displayName )
+         {
+            // This player is already in this group but on a new device, add this device to their list
+            playerFound = true;
+            brackets = player.brackets;
+            devices = player.devices.concat( deviceID );
+            return true; // break
          }
       });
-
-      // If the device isn't recognized, prompt for a name and check if it is already in this group
-      if ( !playerFound )
-      {
-         name = prompt( "Enter your Display Name:" );
-         if ( !name )
-         {
-            throw Error( "Bracket not added to group" );
-         }
-         if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( name ) || name === "GROUP_INFO" )
-         {
-            throw Error( "Invalid Name \"" + name + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
-         }
-
-         // Check if this player is already in this group (on a different device)
-         response.forEach( player =>
-         {
-            if ( player.player === name )
-            {
-               // This player is already in this group, add this device to their list
-               playerFound = true;
-               brackets = player.brackets;
-               devices = player.devices.concat( deviceID );
-               let confirm = window.confirm(`${name} - You have ${player.brackets.length} bracket${ ( player.brackets.length === 1 ) ? "" : "s"} in the group.\nDo you want to add another?`);
-               if ( !confirm )
-               {
-                  throw Error( "Bracket not added to group" );
-               }
-            }
-         });
-      }
 
       if ( !playerFound )
       {
@@ -96,7 +72,7 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
          const indexOfMatchingBracket = brackets.findIndex( entry => entry.picks === bracket.picks && entry.tiebreaker === bracket.tiebreaker );
          if ( indexOfMatchingBracket !== -1 )
          {
-            throw Error( `This bracket is already in this group (${name} #${indexOfMatchingBracket + 1})` );
+            throw Error( `This bracket is already in this group (${displayName} #${indexOfMatchingBracket + 1})` );
          }
 
          // Check if this is a new bracket or an edit to a previous bracket
@@ -115,7 +91,7 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
 
       let bracketData = {
          key: `${currentYear}${group}`,
-         player: name,
+         player: displayName,
          brackets: brackets,
          devices: devices
       };
@@ -130,7 +106,6 @@ export async function submitBracket( setSubmitStatus, deviceID, picks, tiebreake
       })
       .catch( err =>
       {
-         console.log( err );
          if ( err.message !== "Bracket not added to group" )
          {
             console.error( err );
@@ -175,7 +150,7 @@ export async function deleteBracket( setSubmitStatus, deviceID, setReloadBracket
    {
       response.forEach( player =>
       {
-         if ( ( player && player.devices && player.devices.includes( deviceID ) )  )
+         if ( ( player && player.devices && player.devices.includes( deviceID ) && player.player !== "GROUP_INFO" )  )
          {
             // This device has been used by this player before
             playerFound = true;
@@ -188,16 +163,6 @@ export async function deleteBracket( setSubmitStatus, deviceID, setReloadBracket
       if ( !playerFound )
       {
          throw Error( `This bracket cannot be found in group ${currentBracket.group}` );
-      }
-
-      let confirm = window.confirm(`${name} - Delete your ${
-         ( ( currentBracket.bracketIndex > 0 ) 
-            ? ( currentBracket.bracketIndex + 1 ) + getSuffix( currentBracket.bracketIndex + 1 ) + " "
-            : ""
-         ) + "bracket"} from group '${currentBracket.group}'?`);
-      if ( !confirm )
-      {
-         throw Error( "Bracket not deleted" );
       }
 
       // Remove bracket at given index
@@ -250,11 +215,10 @@ export async function deleteBracket( setSubmitStatus, deviceID, setReloadBracket
    });
 }
 
-export async function changeDisplayName( setSubmitStatus, currentYear, group, oldName, setReloadBrackets, switchFocus )
+export async function changeDisplayName( setSubmitStatus, currentYear, group, oldName, setReloadBrackets, switchFocus, newName )
 {
    let brackets = [ ];
    let devices = [ ];
-   let name = "";
    let playerFound = false;
 
    // Fetch this player's information
@@ -274,26 +238,13 @@ export async function changeDisplayName( setSubmitStatus, currentYear, group, ol
 
       if ( !playerFound )
       {
-         return;
-      }
-
-      name = prompt( oldName + " - Enter your new display name:" );
-      if ( !name )
-      {
-         // User cancelled, exit with no error
-         return;
-      }
-      
-      if ( !/^[A-Za-z0-9 /:'[\],.<>?~!@#$%^&*+()`_-]{1,20}$/.test( name ) )
-      {
-         // Invalid name
-         setSubmitStatus( "Invalid Name \"" + name + "\" - Must be 20 or less of the following characters: A-Za-z0-9 /:'[],.<>?~!@#$%^&*+()`_-" );
+         setSubmitStatus( `Player "${oldName}" not found in group "${group}"` );
          return;
       }
 
       let bracketData = {
          key: `${currentYear}${group}`,
-         player: name,
+         player: newName,
          brackets: brackets,
          devices: devices
       };
