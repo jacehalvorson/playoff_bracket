@@ -183,7 +183,7 @@ function Picks( props )
          }
          </p>
          {
-         ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) && currentBracket.name )
+         ( currentBracket && currentBracket.devices && currentBracket.devices.includes( deviceID ) && currentBracket.name && !gamesStarted )
             ? <>
                <Button
                   variant="text"
