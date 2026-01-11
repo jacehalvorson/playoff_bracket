@@ -377,8 +377,21 @@ function Picks( props )
                <h2 id="submit-status" style={{margin: "1em", width: "90vw", textAlign: "center"}}>
                   {submitStatus}
                </h2>
+
+               {/* Link to Score App */}
+               {(deviceID === "019437bf-9e00-707a-a9ed-b6f3bf1ed7a3")
+                  ? <Button
+                        variant="text"
+                        href={"/score"}
+                        style={{ marginTop: "-3em" }}
+                     >
+                        Score App
+                     </Button>
+                  : <></>
+               }
             </div>
          </div>
+
 
          {/* Display Name Entry Popup */}
          <CustomPopup

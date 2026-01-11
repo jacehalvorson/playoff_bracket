@@ -282,8 +282,9 @@ function PlayoffBracket( )
    {
       if ( allBrackets && allBrackets.length > 0 && group )
       {
+         setDeviceDisplayNameInGroup( "" );
          allBrackets.forEach( bracket => {
-            if ( bracket.group === group && bracket.devices && bracket.devices.includes( deviceID ) )
+            if ( bracket && bracket.group === group && bracket.devices && bracket.devices.includes( deviceID ) && bracket.name )
             {
                setDeviceDisplayNameInGroup( bracket.name );
             }
