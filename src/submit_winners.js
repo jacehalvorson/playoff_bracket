@@ -9,7 +9,7 @@ const devices = [
     "01941d8b-881f-72d9-bc04-5e92fed37bf1", // Trent PC (local)
     "01943808-e6bc-74bf-a0dd-1191a3c9f0dc", // Trent PC (main)
     "0194340f-8776-7146-8957-90a007de9c8e", // Jace PC (main)
-    "019437be-9614-72bd-81ff-9db5bf1684a9", // Jace phone (main)
+    "019b956c-a4a3-72d3-87ac-f33c3fc81d3f", // Jace phone (main)
     "019410c4-cfe9-74eb-83e1-7e5407d242c8" // Jace PC (local)
 ];
 
