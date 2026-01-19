@@ -208,34 +208,87 @@ function computeAllGames( picks )
    };
 }
 
-// Return 4 lists, each having the list of winners in the wildcard, divisional, championship, and super bowl games, respectively.
+// Return an object with the winners and losers on the wildcard, divisional, championship, and super bowl games
 // Teams take the form "N1", "N2", ..., "A1", "A2", ..., etc.
-function computeRoundWinners( nflGameResults )
+function computeWinnersAndLosers( nflGameResults )
 {
    const games = computeAllGames( nflGameResults );
    let wildcardWinners = [ ];
+   let wildcardLosers = [ ];
    let divisionalWinners = [ ];
+   let divisionalLosers = [ ];
    let championshipWinners = [ ];
+   let championshipLosers = [ ];
    let superBowlWinners = [ ];
+   let superBowlLosers = [ ];
 
-   wildcardWinners = [
-      ...games.afcWildcardGames.map( game => ( game.winner === 1 ) ? game.homeTeam : game.awayTeam ),
-      ...games.nfcWildcardGames.map( game => ( game.winner === 1 ) ? game.homeTeam : game.awayTeam )
+   [ ...games.afcWildcardGames, ...games.nfcWildcardGames ].forEach( game =>
+   {
+      if ( game.winner === 1 )
+      {
+         wildcardWinners.push( game.homeTeam );
+         wildcardLosers.push( game.awayTeam );
+      }
+      else if ( game.winner === 2 )
+      {
+         wildcardWinners.push( game.awayTeam );
+         wildcardLosers.push( game.homeTeam );
+      }
+   });
+
+   [ ...games.afcDivisionalGames, ...games.nfcDivisionalGames ].forEach( game =>
+   {
+      if ( game.winner === 1 )
+      {
+         divisionalWinners.push( game.homeTeam );
+         divisionalLosers.push( game.awayTeam );
+      }
+      else if ( game.winner === 2 )
+      {
+         divisionalWinners.push( game.awayTeam );
+         divisionalLosers.push( game.homeTeam );
+      }
+   });
+
+   if ( games.afcChampionshipGame.winner === 1 )
+   {
+      championshipWinners.push( games.afcChampionshipGame.homeTeam );
+      championshipLosers.push( games.afcChampionshipGame.awayTeam );
+   }
+   else if ( games.afcChampionshipGame.winner === 2 )
+   {
+      championshipWinners.push( games.afcChampionshipGame.awayTeam );
+      championshipLosers.push( games.afcChampionshipGame.homeTeam );
+   }
+
+   if ( games.nfcChampionshipGame.winner === 1 )
+   {
+      championshipWinners.push( games.nfcChampionshipGame.homeTeam );
+      championshipLosers.push( games.nfcChampionshipGame.awayTeam );
+   }
+   else if ( games.nfcChampionshipGame.winner === 2 )
+   {
+      championshipWinners.push( games.nfcChampionshipGame.awayTeam );
+      championshipLosers.push( games.nfcChampionshipGame.homeTeam );
+   }
+
+   if ( games.superBowl.winner === 1 )
+   {
+      superBowlWinners.push( games.superBowl.homeTeam );
+      superBowlLosers.push( games.superBowl.awayTeam );
+   }
+   else if ( games.superBowl.winner === 2 )
+   {
+      superBowlWinners.push( games.superBowl.awayTeam );
+      superBowlLosers.push( games.superBowl.homeTeam );
+   }
+
+   return [
+      { winners: wildcardWinners, losers: wildcardLosers },
+      { winners: divisionalWinners, losers: divisionalLosers },
+      { winners: championshipWinners, losers: championshipLosers },
+      { winners: superBowlWinners, losers: superBowlLosers }
    ];
-
-   divisionalWinners = [
-      ...games.afcDivisionalGames.map( game => ( game.winner === 1 ) ? game.homeTeam : game.awayTeam ),
-      ...games.nfcDivisionalGames.map( game => ( game.winner === 1 ) ? game.homeTeam : game.awayTeam )
-   ];
-
-   championshipWinners = [
-      ( games.afcChampionshipGame.winner === 1 ) ? games.afcChampionshipGame.homeTeam : games.afcChampionshipGame.awayTeam,
-      ( games.nfcChampionshipGame.winner === 1 ) ? games.nfcChampionshipGame.homeTeam : games.nfcChampionshipGame.awayTeam
-   ];
-
-   superBowlWinners = [ ( games.superBowl.winner === 1 ) ? games.superBowl.homeTeam : games.superBowl.awayTeam ];
-
-   return [ wildcardWinners, divisionalWinners, championshipWinners, superBowlWinners ];
 }
 
 // Return the current games, current picks, and offset from the beginning of the 13-character picks.
@@ -299,4 +352,4 @@ function getSuffix( number )
    }
 }
 
-export { computeAllGames, computeRoundWinners, computeWhatIfData, getSuffix, emptyGames, nflTeamColors };
+export { computeAllGames, computeWinnersAndLosers, computeWhatIfData, getSuffix, emptyGames, nflTeamColors };

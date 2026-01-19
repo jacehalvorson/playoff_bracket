@@ -5,7 +5,7 @@ import Leaderboard from "./leaderboard.jsx";
 import Picks from "./picks.jsx";
 import { fetchAPI, postAPI } from "./api_requests.js";
 import { theme } from './theme.js';
-import { computeRoundWinners } from "./bracket_utils.js";
+import { computeWinnersAndLosers } from "./bracket_utils.js";
 import CustomPopup from "./Popup.jsx";
 
 import "./playoff_bracket.css";
@@ -73,7 +73,7 @@ function PlayoffBracket( )
    const [ gamesStarted, setGamesStarted ] = useState( false );
    const [ reloadTiebreaker, setReloadTiebreaker] = useState( false );
    const [ teamsLoaded, setTeamsLoaded ] = useState( false );
-   const [ roundWinners, setRoundWinners ] = useState( [ [ ], [ ], [ ], [ ] ] );
+   const [ roundWinnersAndLosers, setRoundWinnersAndLosers ] = useState( [ [ ], [ ], [ ], [ ] ] );
    const [ isPasswordWindowOpen, setIsPasswordWindowOpen ] = useState( false );
    const [ targetGroupObject, setTargetGroupObject ] = useState( { name: "", password: "", devices: [ ] } );
    const [ isIncorrectPassword, setIsIncorrectPassword ] = useState( false );
@@ -90,11 +90,7 @@ function PlayoffBracket( )
    // Return 0 for unpicked, 1 for correct, and -1 for incorrect
    const isPickCorrect = ( pickIndex, conference, seed ) =>
    {
-      if ( winningPicks[ pickIndex ] === "0" )
-      {
-         return 0;
-      }
-
+      const currentTeam = `${conference}${seed.toString( )}`
       const roundIndex =
          ( pickIndex >= 0 && pickIndex < 6 )
             ? 0
@@ -109,10 +105,27 @@ function PlayoffBracket( )
       {
          return 0;
       }
+
+      // Make sure the team hasn't already been eliminated
+      for ( let i = roundIndex; i >= 0; i-- )
+      {
+         // If this team is a loser of this round or any previous rounds, it has been eliminated
+         if ( roundWinnersAndLosers[ i ].losers && roundWinnersAndLosers[ i ].losers.includes( currentTeam ) )
+         {
+            return -1;
+         }
+      }
       
-      return ( roundWinners[ roundIndex ].includes( `${conference}${seed.toString( )}` ) )
-         ? 1
-         : -1;
+      // Check if the team is a winner of this round
+      if ( roundWinnersAndLosers[ roundIndex ].winners && roundWinnersAndLosers[ roundIndex ].winners.includes( currentTeam ) )
+      {
+         return 1;
+      }
+      // It has not been decided yet
+      else
+      {
+         return 0;
+      }
    }
 
    const validateAndSwitchToGroup = useCallback(( targetGroup, allGroups ) =>
@@ -156,7 +169,7 @@ function PlayoffBracket( )
       .then( response => {
          const winners = response.find( item => item.index === "winners" ).value;
          setWinningPicks( winners );
-         setRoundWinners( computeRoundWinners( winners ) );
+         setRoundWinnersAndLosers( computeWinnersAndLosers( winners ) );
 
          setPlayoffTeams( {
             "N1": { name: response.find( item => item.index === "N1" ).value, conference: "N", seed: 1 },
